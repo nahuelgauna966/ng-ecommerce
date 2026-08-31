@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+
+# Variables de entorno — NUNCA subir al repositorio
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeORM cache
+.typeorm-cache/
+
+# Editor
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
