@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +15,9 @@ async function bootstrap() {
       transform: true,       // convierte automáticamente los tipos
     }),
   );
+
+  // Formato uniforme de errores HTTP: { statusCode, message, timestamp, path }
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // Prefijo global para todas las rutas: /api/v1/...
   app.setGlobalPrefix('api/v1');
