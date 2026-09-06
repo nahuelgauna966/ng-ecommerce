@@ -67,7 +67,8 @@ export class UsersService {
       ...dto,
       password: hashedPassword,
     });
-    return this.usersRepository.save(user);
+    const saved = await this.usersRepository.save(user);
+    return this.stripPassword(saved);
   }
 
   async update(id: number, dto: UpdateUserDto): Promise<User> {
@@ -87,7 +88,18 @@ export class UsersService {
       user.password = await bcrypt.hash(password, SALT_ROUNDS);
     }
 
-    return this.usersRepository.save(user);
+    const saved = await this.usersRepository.save(user);
+    return this.stripPassword(saved);
+  }
+
+  /**
+   * `create`/`save` devuelven en memoria el objeto tal como se guardó,
+   * incluyendo el hash de password (el `select: false` de la entity solo
+   * aplica a lecturas vía find/findOne). Lo quitamos antes de exponerlo.
+   */
+  private stripPassword(user: User): User {
+    const { password: _password, ...safeUser } = user;
+    return safeUser as User;
   }
 
   async remove(id: number): Promise<void> {
