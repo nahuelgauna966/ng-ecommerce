@@ -5,6 +5,14 @@ import { Product } from './product.entity';
 import { Category } from '../categories/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 @Injectable()
 export class ProductsService {
@@ -19,6 +27,22 @@ export class ProductsService {
     return this.productsRepository.find({
       relations: { category: true, stock: true },
     });
+  }
+
+  async findAllPaginated(
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResult<Product>> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const [data, total] = await this.productsRepository.findAndCount({
+      relations: { category: true, stock: true },
+      where: query.categoryId ? { category: { id: query.categoryId } } : {},
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return { data, total, page, limit };
   }
 
   async findOne(id: number): Promise<Product> {
