@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { StockService } from './stock.service';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { Stock } from './stock.entity';
 
+@ApiTags('stock')
 @Controller('stock')
 export class StockController {
   constructor(private readonly stockService: StockService) {}

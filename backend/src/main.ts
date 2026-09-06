@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -20,6 +21,15 @@ async function bootstrap() {
 
   // Prefijo global para todas las rutas: /api/v1/...
   app.setGlobalPrefix('api/v1');
+
+  // Documentación Swagger disponible en /api/docs
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('ng-ecommerce API')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
