@@ -39,8 +39,7 @@ export class OrdersService {
       for (const item of dto.items) {
         requestedQuantityByProduct.set(
           item.productId,
-          (requestedQuantityByProduct.get(item.productId) ?? 0) +
-            item.quantity,
+          (requestedQuantityByProduct.get(item.productId) ?? 0) + item.quantity,
         );
       }
 
