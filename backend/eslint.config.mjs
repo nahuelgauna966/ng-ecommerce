@@ -8,7 +8,7 @@ export default tseslint.config(
   {
     ignores: ['eslint.config.mjs'],
   },
-  eslint.recommended,
+  eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
   {

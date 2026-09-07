@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, unlinkSync } from 'fs';
 import { E2E_PID_FILE } from './e2e-server.config';
 
-module.exports = async function globalTeardown(): Promise<void> {
+module.exports = function globalTeardown(): void {
   if (!existsSync(E2E_PID_FILE)) {
     return;
   }
