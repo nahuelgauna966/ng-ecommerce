@@ -111,4 +111,16 @@ export class OrdersService {
     }
     return order;
   }
+
+  /**
+   * Pedidos del usuario autenticado, con sus orderDetails y productos,
+   * ordenados por fecha de creación descendente (más recientes primero).
+   */
+  findByUser(userId: number): Promise<Order[]> {
+    return this.orderRepository.find({
+      where: { user: { id: userId } },
+      relations: { orderDetails: { product: true } },
+      order: { createdAt: 'DESC' },
+    });
+  }
 }

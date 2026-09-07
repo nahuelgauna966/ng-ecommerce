@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -16,6 +16,14 @@ import { Order } from './order.entity';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my-orders')
+  @ApiOperation({ summary: 'Listar los pedidos del usuario autenticado' })
+  @ApiResponse({ status: 200, description: 'Lista de pedidos del usuario.' })
+  findMyOrders(@CurrentUser('sub') userId: number): Promise<Order[]> {
+    return this.ordersService.findByUser(userId);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post()
