@@ -1,29 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { E2E_BASE_URL } from './e2e-server.config';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
-
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
-  });
-
-  afterEach(async () => {
-    await app.close();
+/**
+ * Smoke test básico contra el servidor real levantado en global-setup.ts.
+ * (El AppController de ejemplo del boilerplate de Nest ya no existe en
+ * este proyecto, por eso se verifica un endpoint público real en su lugar.)
+ */
+describe('AppModule (e2e)', () => {
+  it('GET /categories responde 200 (endpoint público de solo lectura)', async () => {
+    const res = await fetch(`${E2E_BASE_URL}/categories`);
+    expect(res.status).toBe(200);
   });
 });
