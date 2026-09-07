@@ -8,6 +8,7 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Order, OrderStatus } from './order.entity';
 import { OrderDetail } from '../order-details/order-detail.entity';
+import { OrderDetailsService } from '../order-details/order-details.service';
 import { Product } from '../products/product.entity';
 import { Stock } from '../stock/stock.entity';
 import { UserRole } from '../users/user.entity';
@@ -37,6 +38,7 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    private readonly orderDetailsService: OrderDetailsService,
   ) {}
 
   /**
@@ -123,11 +125,12 @@ export class OrdersService {
   private async getOrderOrFail(id: number): Promise<Order> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: { user: true, payment: true, orderDetails: { product: true } },
+      relations: { user: true, payment: true },
     });
     if (!order) {
       throw new NotFoundException(`Pedido con id ${id} no encontrado`);
     }
+    order.orderDetails = await this.orderDetailsService.findByOrder(id);
     return order;
   }
 
