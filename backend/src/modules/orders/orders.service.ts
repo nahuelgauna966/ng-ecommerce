@@ -13,9 +13,25 @@ import { Stock } from '../stock/stock.entity';
 import { UserRole } from '../users/user.entity';
 import { JwtPayload } from '../auth/auth.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 @Injectable()
 export class OrdersService {
+  /**
+   * Transiciones de estado permitidas. 'delivered' y 'cancelled' son
+   * terminales: una vez ahí, el pedido no puede volver a cambiar de estado.
+   */
+  private static readonly ALLOWED_TRANSITIONS: Record<
+    OrderStatus,
+    OrderStatus[]
+  > = {
+    [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+    [OrderStatus.CONFIRMED]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+    [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
+    [OrderStatus.DELIVERED]: [],
+    [OrderStatus.CANCELLED]: [],
+  };
+
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
@@ -146,5 +162,28 @@ export class OrdersService {
     }
 
     return order;
+  }
+
+  /**
+   * Cambia el estado de un pedido (solo admin, validado por RolesGuard en el
+   * controller). Rechaza transiciones que no tengan sentido en el ciclo de
+   * vida del pedido (ej: 'delivered' -> 'pending').
+   */
+  async updateStatus(id: number, dto: UpdateOrderStatusDto): Promise<Order> {
+    const order = await this.orderRepository.findOne({ where: { id } });
+    if (!order) {
+      throw new NotFoundException(`Pedido con id ${id} no encontrado`);
+    }
+
+    const allowedNextStatuses = OrdersService.ALLOWED_TRANSITIONS[order.status];
+    if (!allowedNextStatuses.includes(dto.status)) {
+      throw new BadRequestException(
+        `No se puede pasar el pedido de '${order.status}' a '${dto.status}'`,
+      );
+    }
+
+    order.status = dto.status;
+    await this.orderRepository.save(order);
+    return this.getOrderOrFail(id);
   }
 }

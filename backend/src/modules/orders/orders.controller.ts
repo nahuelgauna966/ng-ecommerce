@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -14,10 +15,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/auth.service';
+import { UserRole } from '../users/user.entity';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { Order } from './order.entity';
 
 @ApiTags('orders')
@@ -67,5 +72,25 @@ export class OrdersController {
     @CurrentUser() user: JwtPayload,
   ): Promise<Order> {
     return this.ordersService.findOne(id, user);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Cambiar el estado de un pedido (solo admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Pedido con el estado actualizado.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Transición de estado inválida (ej: delivered -> pending).',
+  })
+  @ApiResponse({ status: 404, description: 'El pedido no existe.' })
+  updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateOrderStatusDto,
+  ): Promise<Order> {
+    return this.ordersService.updateStatus(id, dto);
   }
 }
