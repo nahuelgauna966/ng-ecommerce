@@ -5,6 +5,22 @@ import { E2E_BASE_URL } from './e2e-server.config';
 
 dotenv.config();
 
+// Forma mínima de las respuestas JSON que nos interesan verificar. Evita
+// que `res.json()` (tipado `any` por el DOM lib) dispare los lint rules
+// no-unsafe-assignment / no-unsafe-member-access.
+interface ApiResponse {
+  access_token?: string;
+  message?: string;
+  email?: string;
+  name?: string;
+  password?: string;
+  role?: string;
+}
+
+async function parseJson(res: Response): Promise<ApiResponse> {
+  return (await res.json()) as ApiResponse;
+}
+
 /**
  * Test e2e del flujo completo de autenticación, corrido contra una
  * instancia real y compilada del backend (ver global-setup.ts) en vez de
@@ -40,7 +56,9 @@ describe('Auth flow (e2e)', () => {
   });
 
   afterAll(async () => {
-    await db.query('DELETE FROM categories WHERE name = $1', [testCategoryName]);
+    await db.query('DELETE FROM categories WHERE name = $1', [
+      testCategoryName,
+    ]);
     await db.query('DELETE FROM users WHERE email = ANY($1)', [
       [customerEmail, adminEmail, duplicateEmail],
     ]);
@@ -52,9 +70,13 @@ describe('Auth flow (e2e)', () => {
       const res = await fetch(`${E2E_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'E2E Customer', email: customerEmail, password }),
+        body: JSON.stringify({
+          name: 'E2E Customer',
+          email: customerEmail,
+          password,
+        }),
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(201);
       expect(body).toMatchObject({
@@ -84,14 +106,22 @@ describe('Auth flow (e2e)', () => {
       const first = await fetch(`${E2E_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Original', email: duplicateEmail, password }),
+        body: JSON.stringify({
+          name: 'Original',
+          email: duplicateEmail,
+          password,
+        }),
       });
       expect(first.status).toBe(201);
 
       const second = await fetch(`${E2E_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Duplicado', email: duplicateEmail, password }),
+        body: JSON.stringify({
+          name: 'Duplicado',
+          email: duplicateEmail,
+          password,
+        }),
       });
       expect(second.status).toBe(409);
     });
@@ -104,11 +134,11 @@ describe('Auth flow (e2e)', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: customerEmail, password }),
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(200);
       expect(typeof body.access_token).toBe('string');
-      customerToken = body.access_token;
+      customerToken = body.access_token as string;
     });
 
     it('loguea al admin sembrado para usarlo en los casos de rol', async () => {
@@ -117,19 +147,22 @@ describe('Auth flow (e2e)', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: adminEmail, password }),
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(200);
-      adminToken = body.access_token;
+      adminToken = body.access_token as string;
     });
 
     it('rechaza login con password incorrecta (mensaje genérico)', async () => {
       const res = await fetch(`${E2E_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: customerEmail, password: 'wrong-password' }),
+        body: JSON.stringify({
+          email: customerEmail,
+          password: 'wrong-password',
+        }),
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(401);
       expect(body.message).toBe('Credenciales inválidas');
@@ -139,9 +172,12 @@ describe('Auth flow (e2e)', () => {
       const res = await fetch(`${E2E_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: `no-existe-${runId}@test.com`, password }),
+        body: JSON.stringify({
+          email: `no-existe-${runId}@test.com`,
+          password,
+        }),
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(401);
       expect(body.message).toBe('Credenciales inválidas');
@@ -158,7 +194,7 @@ describe('Auth flow (e2e)', () => {
       const res = await fetch(`${E2E_BASE_URL}/users/me`, {
         headers: { Authorization: `Bearer ${customerToken}` },
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(200);
       expect(body.email).toBe(customerEmail);
@@ -173,7 +209,7 @@ describe('Auth flow (e2e)', () => {
         },
         body: JSON.stringify({ name: 'E2E Customer Actualizado' }),
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(200);
       expect(body.name).toBe('E2E Customer Actualizado');
@@ -202,7 +238,7 @@ describe('Auth flow (e2e)', () => {
         },
         body: JSON.stringify({ name: testCategoryName }),
       });
-      const body = await res.json();
+      const body = await parseJson(res);
 
       expect(res.status).toBe(201);
       expect(body.name).toBe(testCategoryName);
