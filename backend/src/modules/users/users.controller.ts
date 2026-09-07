@@ -8,52 +8,54 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './user.entity';
-
-// Payload que dejará JwtStrategy (NE-33) en req.user una vez validado el token.
-interface AuthenticatedRequest extends Request {
-  user?: { sub: number };
-}
+import { User, UserRole } from './user.entity';
 
 @ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // NOTA: hasta que se implementen NE-33 (JwtStrategy), NE-34 (JwtAuthGuard) y
-  // NE-35 (@CurrentUser), req.user todavía no se completa automáticamente.
-  // NE-37 va a agregar @UseGuards(JwtAuthGuard) acá y reemplazar @Req() por
-  // @CurrentUser() en /me. Las rutas de admin también se protegen en NE-37
-  // con RolesGuard.
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  getProfile(@Req() req: AuthenticatedRequest): Promise<User> {
-    return this.usersService.findOne(req.user!.sub);
+  getProfile(@CurrentUser('sub') userId: number): Promise<User> {
+    return this.usersService.findOne(userId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateProfile(
-    @Req() req: AuthenticatedRequest,
+    @CurrentUser('sub') userId: number,
     @Body() dto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(req.user!.sub, dto);
+    return this.usersService.update(userId, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get()
   findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -62,6 +64,8 @@ export class UsersController {
     return this.usersService.update(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
