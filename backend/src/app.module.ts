@@ -7,6 +7,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductsModule } from './modules/products/products.module';
 import { StockModule } from './modules/stock/stock.module';
 import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { OrderDetailsModule } from './modules/order-details/order-details.module';
 import { PaymentsModule } from './modules/payments/payments.module';
@@ -31,6 +32,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     ProductsModule,
     StockModule,
     UsersModule,
+    AuthModule,
     OrdersModule,
     OrderDetailsModule,
     PaymentsModule,
