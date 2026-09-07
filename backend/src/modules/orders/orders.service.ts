@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,6 +10,8 @@ import { Order, OrderStatus } from './order.entity';
 import { OrderDetail } from '../order-details/order-detail.entity';
 import { Product } from '../products/product.entity';
 import { Stock } from '../stock/stock.entity';
+import { UserRole } from '../users/user.entity';
+import { JwtPayload } from '../auth/auth.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
@@ -122,5 +125,26 @@ export class OrdersService {
       relations: { orderDetails: { product: true } },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  /**
+   * Detalle completo de un pedido. El dueño del pedido puede verlo; un admin
+   * puede ver cualquiera. Los datos del usuario (nombre, email) solo se
+   * incluyen en la respuesta si quien pregunta es admin.
+   */
+  async findOne(id: number, currentUser: JwtPayload): Promise<Order> {
+    const order = await this.getOrderOrFail(id);
+
+    const isAdmin = (currentUser.role as UserRole) === UserRole.ADMIN;
+    const isOwner = order.user?.id === currentUser.sub;
+    if (!isAdmin && !isOwner) {
+      throw new ForbiddenException('No tenés permiso para ver este pedido');
+    }
+
+    if (!isAdmin) {
+      delete (order as { user?: unknown }).user;
+    }
+
+    return order;
   }
 }

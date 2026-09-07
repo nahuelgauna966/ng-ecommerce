@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -7,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { JwtPayload } from '../auth/auth.service';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './order.entity';
@@ -41,5 +50,22 @@ export class OrdersController {
     @Body() dto: CreateOrderDto,
   ): Promise<Order> {
     return this.ordersService.create(userId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  @ApiOperation({ summary: 'Ver el detalle completo de un pedido' })
+  @ApiResponse({ status: 200, description: 'Detalle del pedido.' })
+  @ApiResponse({
+    status: 403,
+    description:
+      'El pedido pertenece a otro usuario y quien pregunta no es admin.',
+  })
+  @ApiResponse({ status: 404, description: 'El pedido no existe.' })
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<Order> {
+    return this.ordersService.findOne(id, user);
   }
 }
