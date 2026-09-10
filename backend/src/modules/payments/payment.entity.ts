@@ -36,6 +36,9 @@ export class Payment {
   @Column({ type: 'enum', enum: PaymentMethod })
   method!: PaymentMethod;
 
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  stripePaymentIntentId!: string | null;
+
   @OneToOne(() => Order, (order: Order) => order.payment, { onDelete: 'CASCADE' })
   @JoinColumn()
   order!: Order;
