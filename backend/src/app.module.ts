@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import databaseConfig from './config/database.config';
+import stripeConfig from './config/stripe.config';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductsModule } from './modules/products/products.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -17,7 +18,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     // Carga las variables de entorno desde .env y las hace disponibles globalmente
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
+      load: [databaseConfig, stripeConfig],
     }),
 
     // Conexión a PostgreSQL (Neon) usando la config centralizada
