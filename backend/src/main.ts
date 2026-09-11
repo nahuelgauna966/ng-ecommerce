@@ -5,7 +5,9 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // rawBody: true habilita request.rawBody, necesario para verificar la
+  // firma del webhook de Stripe (POST /payments/webhook).
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   // Activa la validación global de DTOs con class-validator
   app.useGlobalPipes(
