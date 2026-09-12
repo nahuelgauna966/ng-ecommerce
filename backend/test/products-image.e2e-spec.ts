@@ -39,12 +39,12 @@ const MAGIC_BYTES: Record<string, Buffer> = {
   'image/jpeg': Buffer.from([
     0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
   ]),
-  'image/webp': Buffer.concat([
-    Buffer.from('RIFF', 'ascii'),
-    Buffer.from([0x24, 0x00, 0x00, 0x00]),
-    Buffer.from('WEBP', 'ascii'),
-    Buffer.from('VP8 ', 'ascii'),
-  ]),
+  // WEBP real de 1x1 (no solo la cabecera RIFF/WEBP): Cloudinary rechaza
+  // archivos que solo tienen la firma sin datos de imagen válidos.
+  'image/webp': Buffer.from(
+    'UklGRjwAAABXRUJQVlA4IDAAAADQAQCdASoBAAEAAUAmJaACdLoB+AADsAD+8ut//NgVzXPv9//S4P0uD9Lg/9KQAAA=',
+    'base64',
+  ),
 };
 
 function buildImageForm(
