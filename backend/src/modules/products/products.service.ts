@@ -6,6 +6,7 @@ import { Category } from '../categories/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { CloudinaryService } from '../../common/cloudinary/cloudinary.service';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -21,6 +22,7 @@ export class ProductsService {
     private readonly productsRepository: Repository<Product>,
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   findAll(): Promise<Product[]> {
@@ -101,5 +103,23 @@ export class ProductsService {
   async remove(id: number): Promise<void> {
     const product = await this.findOne(id);
     await this.productsRepository.remove(product);
+  }
+
+  async updateImage(
+    id: number,
+    file: Express.Multer.File,
+  ): Promise<Product> {
+    const product = await this.findOne(id);
+
+    if (product.cloudinaryPublicId) {
+      await this.cloudinaryService.deleteImage(product.cloudinaryPublicId);
+    }
+
+    const result = await this.cloudinaryService.uploadImage(file, 'products');
+    product.imageUrl = result.secure_url;
+    product.cloudinaryPublicId = result.public_id;
+
+    await this.productsRepository.save(product);
+    return this.findOne(id);
   }
 }
