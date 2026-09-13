@@ -3,13 +3,21 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
 import ProductCard from '../components/ProductCard';
-import { getErrorMessage, productsApi, type Product } from '../services/api';
+import {
+  categoriesApi,
+  getErrorMessage,
+  productsApi,
+  type Category,
+  type Product,
+} from '../services/api';
 
 type CustomerStackParamList = {
   Home: undefined;
@@ -28,6 +36,8 @@ const PAGE_SIZE = 10;
 
 export default function CatalogScreen({ navigation }: CatalogScreenProps) {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>();
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,16 +45,28 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadPage = useCallback(async (nextPage: number, replace = false) => {
+  const loadPage = useCallback(
+    async (nextPage: number, replace = false, categoryId = selectedCategoryId) => {
+      try {
+        setError(null);
+        const response = await productsApi.getAll(nextPage, PAGE_SIZE, categoryId);
+        const { data, total: responseTotal } = response.data;
+        setProducts((current) => (replace ? data : [...current, ...data]));
+        setTotal(responseTotal);
+        setPage(nextPage);
+      } catch (requestError) {
+        setError(getErrorMessage(requestError));
+      }
+    },
+    [selectedCategoryId],
+  );
+
+  const loadCategories = useCallback(async () => {
     try {
-      setError(null);
-      const response = await productsApi.getAll(nextPage, PAGE_SIZE);
-      const { data, total: responseTotal } = response.data;
-      setProducts((current) => (replace ? data : [...current, ...data]));
-      setTotal(responseTotal);
-      setPage(nextPage);
-    } catch (requestError) {
-      setError(getErrorMessage(requestError));
+      const response = await categoriesApi.getAll();
+      setCategories(response.data);
+    } catch {
+      // El catálogo sigue disponible aunque no pueda cargar los filtros.
     }
   }, []);
 
@@ -52,10 +74,25 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
     void loadPage(1, true).finally(() => setIsLoading(false));
   }, [loadPage]);
 
+  useEffect(() => {
+    void loadCategories();
+  }, [loadCategories]);
+
   const refresh = async () => {
     setIsRefreshing(true);
     await loadPage(1, true);
+    await loadCategories();
     setIsRefreshing(false);
+  };
+
+  const selectCategory = (categoryId?: number) => {
+    if (categoryId === selectedCategoryId) {
+      return;
+    }
+    setProducts([]);
+    setPage(1);
+    setTotal(0);
+    setSelectedCategoryId(categoryId);
   };
 
   const loadMore = async () => {
@@ -90,6 +127,27 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
       ListFooterComponent={
         isLoadingMore ? <ActivityIndicator style={styles.footer} /> : null
       }
+      ListHeaderComponent={
+        <ScrollView
+          contentContainerStyle={styles.chips}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          <CategoryChip
+            label="Todas"
+            onPress={() => selectCategory()}
+            selected={selectedCategoryId === undefined}
+          />
+          {categories.map((category) => (
+            <CategoryChip
+              key={category.id}
+              label={category.name}
+              onPress={() => selectCategory(category.id)}
+              selected={selectedCategoryId === category.id}
+            />
+          ))}
+        </ScrollView>
+      }
       onEndReached={() => void loadMore()}
       onEndReachedThreshold={0.4}
       onRefresh={() => void refresh()}
@@ -101,6 +159,28 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
         />
       )}
     />
+  );
+}
+
+function CategoryChip({
+  label,
+  onPress,
+  selected,
+}: {
+  label: string;
+  onPress: () => void;
+  selected: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={[styles.chip, selected && styles.chipSelected]}
+    >
+      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -121,5 +201,28 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginVertical: 20,
+  },
+  chips: {
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  chip: {
+    borderColor: '#9ca3af',
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  chipSelected: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  chipText: {
+    color: '#374151',
+    fontWeight: '600',
+  },
+  chipTextSelected: {
+    color: '#ffffff',
   },
 });

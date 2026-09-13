@@ -117,10 +117,21 @@ export interface PaginatedProducts {
   limit: number;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+}
+
 export const productsApi = {
-  getAll: (page = 1, limit = 10) =>
-    api.get<PaginatedProducts>('/products', { params: { page, limit } }),
+  getAll: (page = 1, limit = 10, categoryId?: number) =>
+    api.get<PaginatedProducts>('/products', {
+      params: { page, limit, ...(categoryId === undefined ? {} : { categoryId }) },
+    }),
   getById: (id: number) => api.get<Product>(`/products/${id}`),
+};
+
+export const categoriesApi = {
+  getAll: () => api.get<Category[]>('/categories'),
 };
 
 export interface Order {
