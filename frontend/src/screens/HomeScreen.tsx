@@ -1,17 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import ScreenPlaceholder from '../components/ScreenPlaceholder';
 
 export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>Home</Text>
-    </View>
-  );
+  return <ScreenPlaceholder title="Inicio" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
