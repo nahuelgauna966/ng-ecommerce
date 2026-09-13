@@ -1,5 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useEffect } from 'react';
 
 import { type ProtectedRouteName, useAuth } from '../context/AuthContext';
@@ -144,15 +151,36 @@ function CustomerNavigator({
 }: {
   initialRouteName: ProtectedRouteName | null;
 }) {
-  const { clearIntendedRoute } = useAuth();
+  const { clearIntendedRoute, logout } = useAuth();
 
   useEffect(() => {
     clearIntendedRoute();
   }, [clearIntendedRoute]);
 
+  const confirmLogout = () => {
+    Alert.alert('Cerrar sesión', '¿Querés cerrar sesión?', [
+      { style: 'cancel', text: 'Cancelar' },
+      {
+        style: 'destructive',
+        text: 'Cerrar sesión',
+        onPress: () => void logout(),
+      },
+    ]);
+  };
+
   return (
     <CustomerStack.Navigator initialRouteName={initialRouteName ?? 'Home'}>
-      <CustomerStack.Screen name="Home" component={HomeScreen} />
+      <CustomerStack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          headerRight: () => (
+            <Pressable onPress={confirmLogout} style={styles.headerLogout}>
+              <Text style={styles.headerLogoutText}>Salir</Text>
+            </Pressable>
+          ),
+        }}
+      />
       <CustomerStack.Screen name="Catalog" component={CatalogScreen} />
       <CustomerStack.Screen
         name="ProductDetail"
@@ -177,9 +205,32 @@ function CustomerNavigator({
 }
 
 function AdminNavigator() {
+  const { logout } = useAuth();
+
+  const confirmLogout = () => {
+    Alert.alert('Cerrar sesión', '¿Querés cerrar sesión?', [
+      { style: 'cancel', text: 'Cancelar' },
+      {
+        style: 'destructive',
+        text: 'Cerrar sesión',
+        onPress: () => void logout(),
+      },
+    ]);
+  };
+
   return (
     <AdminStack.Navigator initialRouteName="Dashboard">
-      <AdminStack.Screen name="Dashboard" options={{ title: 'Dashboard' }}>
+      <AdminStack.Screen
+        name="Dashboard"
+        options={{
+          title: 'Dashboard',
+          headerRight: () => (
+            <Pressable onPress={confirmLogout} style={styles.headerLogout}>
+              <Text style={styles.headerLogoutText}>Salir</Text>
+            </Pressable>
+          ),
+        }}
+      >
         {() => <AdminPlaceholderScreen title="Dashboard" />}
       </AdminStack.Screen>
       <AdminStack.Screen name="Products" options={{ title: 'Productos' }}>
@@ -226,6 +277,14 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 20,
+    fontWeight: '600',
+  },
+  headerLogout: {
+    padding: 8,
+  },
+  headerLogoutText: {
+    color: '#dc2626',
+    fontSize: 15,
     fontWeight: '600',
   },
 });
