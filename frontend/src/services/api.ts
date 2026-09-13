@@ -104,6 +104,10 @@ export interface Product {
   imageUrl: string | null;
   cloudinaryPublicId: string | null;
   isActive: boolean;
+  category?: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface PaginatedProducts {
