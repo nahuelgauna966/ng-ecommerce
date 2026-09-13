@@ -1,7 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { Alert } from 'react-native';
 
 const TOKEN_KEY = 'auth_token';
+let unauthorizedHandler: (() => Promise<void>) | null = null;
+let isHandlingUnauthorized = false;
 
 const api = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
@@ -16,8 +19,45 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+export function setUnauthorizedHandler(
+  handler: (() => Promise<void>) | null,
+): void {
+  unauthorizedHandler = handler;
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const requestUrl = error.config?.url ?? '';
+    const isAuthRequest = /\/auth\/(login|register)$/.test(requestUrl);
+
+    if (
+      error.response?.status === 401 &&
+      !isAuthRequest &&
+      !isHandlingUnauthorized
+    ) {
+      isHandlingUnauthorized = true;
+      try {
+        if (unauthorizedHandler) {
+          await unauthorizedHandler();
+        } else {
+          await SecureStore.deleteItemAsync(TOKEN_KEY);
+        }
+        Alert.alert(
+          'Sesión expirada',
+          'Tu sesión ha expirado. Por favor iniciá sesión nuevamente.',
+        );
+      } finally {
+        isHandlingUnauthorized = false;
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 export interface ApiError {
-  message: string;
+  message: string | string[];
 }
 
 export function getErrorMessage(error: unknown): string {

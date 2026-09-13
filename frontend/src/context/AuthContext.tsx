@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from 'react';
 
+import { setUnauthorizedHandler } from '../services/api';
+
 const TOKEN_KEY = 'auth_token';
 
 // Coincide con el payload que firma el backend (ver JwtPayload en
@@ -97,6 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void loadStoredToken();
   }, [loadStoredToken]);
+
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, token, isLoading, login, logout, loadStoredToken }),
