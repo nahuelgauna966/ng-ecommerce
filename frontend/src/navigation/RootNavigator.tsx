@@ -1,17 +1,153 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { useAuth } from '../context/AuthContext';
+import CartScreen from '../screens/CartScreen';
+import CatalogScreen from '../screens/CatalogScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
 import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+import MyOrdersScreen from '../screens/MyOrdersScreen';
+import OrderDetailScreen from '../screens/OrderDetailScreen';
+import ProductDetailScreen from '../screens/ProductDetailScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 
-export type RootStackParamList = {
-  Home: undefined;
+type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+type CustomerStackParamList = {
+  Home: undefined;
+  Catalog: undefined;
+  ProductDetail: undefined;
+  Cart: undefined;
+  Checkout: undefined;
+  MyOrders: undefined;
+  OrderDetail: undefined;
+  Profile: undefined;
+};
 
-export default function RootNavigator() {
+type AdminStackParamList = {
+  Dashboard: undefined;
+  Products: undefined;
+  Categories: undefined;
+  Orders: undefined;
+  Users: undefined;
+};
+
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const CustomerStack = createNativeStackNavigator<CustomerStackParamList>();
+const AdminStack = createNativeStackNavigator<AdminStackParamList>();
+
+function LoadingScreen() {
   return (
-    <Stack.Navigator initialRouteName="Home">
-      <Stack.Screen name="Home" component={HomeScreen} />
-    </Stack.Navigator>
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" />
+      <Text style={styles.loadingText}>Cargando sesión...</Text>
+    </View>
   );
 }
+
+function AdminPlaceholderScreen({ title }: { title: string }) {
+  return (
+    <View style={styles.loadingContainer}>
+      <Text style={styles.loadingText}>{title}</Text>
+    </View>
+  );
+}
+
+function AuthNavigator() {
+  return (
+    <AuthStack.Navigator initialRouteName="Login">
+      <AuthStack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ title: 'Iniciar sesión' }}
+      />
+      <AuthStack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{ title: 'Crear cuenta' }}
+      />
+    </AuthStack.Navigator>
+  );
+}
+
+function CustomerNavigator() {
+  return (
+    <CustomerStack.Navigator initialRouteName="Home">
+      <CustomerStack.Screen name="Home" component={HomeScreen} />
+      <CustomerStack.Screen name="Catalog" component={CatalogScreen} />
+      <CustomerStack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={{ title: 'Producto' }}
+      />
+      <CustomerStack.Screen name="Cart" component={CartScreen} />
+      <CustomerStack.Screen name="Checkout" component={CheckoutScreen} />
+      <CustomerStack.Screen
+        name="MyOrders"
+        component={MyOrdersScreen}
+        options={{ title: 'Mis pedidos' }}
+      />
+      <CustomerStack.Screen
+        name="OrderDetail"
+        component={OrderDetailScreen}
+        options={{ title: 'Pedido' }}
+      />
+      <CustomerStack.Screen name="Profile" component={ProfileScreen} />
+    </CustomerStack.Navigator>
+  );
+}
+
+function AdminNavigator() {
+  return (
+    <AdminStack.Navigator initialRouteName="Dashboard">
+      <AdminStack.Screen name="Dashboard" options={{ title: 'Dashboard' }}>
+        {() => <AdminPlaceholderScreen title="Dashboard" />}
+      </AdminStack.Screen>
+      <AdminStack.Screen name="Products" options={{ title: 'Productos' }}>
+        {() => <AdminPlaceholderScreen title="Productos" />}
+      </AdminStack.Screen>
+      <AdminStack.Screen name="Categories" options={{ title: 'Categorías' }}>
+        {() => <AdminPlaceholderScreen title="Categorías" />}
+      </AdminStack.Screen>
+      <AdminStack.Screen name="Orders" options={{ title: 'Pedidos' }}>
+        {() => <AdminPlaceholderScreen title="Pedidos" />}
+      </AdminStack.Screen>
+      <AdminStack.Screen name="Users" options={{ title: 'Usuarios' }}>
+        {() => <AdminPlaceholderScreen title="Usuarios" />}
+      </AdminStack.Screen>
+    </AdminStack.Navigator>
+  );
+}
+
+export default function RootNavigator() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return <AuthNavigator />;
+  }
+
+  return user.role === 'admin' ? <AdminNavigator /> : <CustomerNavigator />;
+}
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 20,
+    fontWeight: '600',
+  },
+});
