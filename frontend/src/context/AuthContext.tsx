@@ -32,6 +32,12 @@ export interface AuthUser {
   role: string;
 }
 
+export type ProtectedRouteName =
+  | 'Cart'
+  | 'Checkout'
+  | 'MyOrders'
+  | 'Profile';
+
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
@@ -39,6 +45,9 @@ interface AuthContextValue {
   login: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   loadStoredToken: () => Promise<void>;
+  intendedRoute: ProtectedRouteName | null;
+  requestProtectedRoute: (route: ProtectedRouteName) => void;
+  clearIntendedRoute: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -59,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [intendedRoute, setIntendedRoute] =
+    useState<ProtectedRouteName | null>(null);
 
   const loadStoredToken = useCallback(async () => {
     setIsLoading(true);
@@ -94,6 +105,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     setToken(null);
     setUser(null);
+    setIntendedRoute(null);
+  }, []);
+
+  const requestProtectedRoute = useCallback((route: ProtectedRouteName) => {
+    setIntendedRoute(route);
+  }, []);
+
+  const clearIntendedRoute = useCallback(() => {
+    setIntendedRoute(null);
   }, []);
 
   useEffect(() => {
@@ -106,8 +126,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [logout]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, isLoading, login, logout, loadStoredToken }),
-    [user, token, isLoading, login, logout, loadStoredToken],
+    () => ({
+      user,
+      token,
+      isLoading,
+      login,
+      logout,
+      loadStoredToken,
+      intendedRoute,
+      requestProtectedRoute,
+      clearIntendedRoute,
+    }),
+    [
+      user,
+      token,
+      isLoading,
+      login,
+      logout,
+      loadStoredToken,
+      intendedRoute,
+      requestProtectedRoute,
+      clearIntendedRoute,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

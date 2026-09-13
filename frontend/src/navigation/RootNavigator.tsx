@@ -1,7 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
 
-import { useAuth } from '../context/AuthContext';
+import { type ProtectedRouteName, useAuth } from '../context/AuthContext';
 import CartScreen from '../screens/CartScreen';
 import CatalogScreen from '../screens/CatalogScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
@@ -14,8 +15,15 @@ import ProfileScreen from '../screens/ProfileScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 
 type AuthStackParamList = {
+  Home: undefined;
+  Catalog: undefined;
+  ProductDetail: undefined;
   Login: undefined;
   Register: undefined;
+  Cart: undefined;
+  Checkout: undefined;
+  MyOrders: undefined;
+  Profile: undefined;
 };
 
 type CustomerStackParamList = {
@@ -60,7 +68,14 @@ function AdminPlaceholderScreen({ title }: { title: string }) {
 
 function AuthNavigator() {
   return (
-    <AuthStack.Navigator initialRouteName="Login">
+    <AuthStack.Navigator initialRouteName="Home">
+      <AuthStack.Screen name="Home" component={HomeScreen} />
+      <AuthStack.Screen name="Catalog" component={CatalogScreen} />
+      <AuthStack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={{ title: 'Producto' }}
+      />
       <AuthStack.Screen
         name="Login"
         component={LoginScreen}
@@ -71,13 +86,72 @@ function AuthNavigator() {
         component={RegisterScreen}
         options={{ title: 'Crear cuenta' }}
       />
+      <AuthStack.Screen name="Cart" options={{ title: 'Carrito' }}>
+        {({ navigation }) => (
+          <ProtectedRoute
+            destination="Cart"
+            redirectToLogin={() => navigation.replace('Login')}
+          />
+        )}
+      </AuthStack.Screen>
+      <AuthStack.Screen name="Checkout" options={{ title: 'Checkout' }}>
+        {({ navigation }) => (
+          <ProtectedRoute
+            destination="Checkout"
+            redirectToLogin={() => navigation.replace('Login')}
+          />
+        )}
+      </AuthStack.Screen>
+      <AuthStack.Screen name="MyOrders" options={{ title: 'Mis pedidos' }}>
+        {({ navigation }) => (
+          <ProtectedRoute
+            destination="MyOrders"
+            redirectToLogin={() => navigation.replace('Login')}
+          />
+        )}
+      </AuthStack.Screen>
+      <AuthStack.Screen name="Profile" options={{ title: 'Perfil' }}>
+        {({ navigation }) => (
+          <ProtectedRoute
+            destination="Profile"
+            redirectToLogin={() => navigation.replace('Login')}
+          />
+        )}
+      </AuthStack.Screen>
     </AuthStack.Navigator>
   );
 }
 
-function CustomerNavigator() {
+function ProtectedRoute({
+  destination,
+  redirectToLogin,
+}: {
+  destination: ProtectedRouteName;
+  redirectToLogin: () => void;
+}) {
+  const { requestProtectedRoute } = useAuth();
+
+  useEffect(() => {
+    requestProtectedRoute(destination);
+    redirectToLogin();
+  }, [destination, redirectToLogin, requestProtectedRoute]);
+
+  return <LoadingScreen />;
+}
+
+function CustomerNavigator({
+  initialRouteName,
+}: {
+  initialRouteName: ProtectedRouteName | null;
+}) {
+  const { clearIntendedRoute } = useAuth();
+
+  useEffect(() => {
+    clearIntendedRoute();
+  }, [clearIntendedRoute]);
+
   return (
-    <CustomerStack.Navigator initialRouteName="Home">
+    <CustomerStack.Navigator initialRouteName={initialRouteName ?? 'Home'}>
       <CustomerStack.Screen name="Home" component={HomeScreen} />
       <CustomerStack.Screen name="Catalog" component={CatalogScreen} />
       <CustomerStack.Screen
@@ -125,7 +199,7 @@ function AdminNavigator() {
 }
 
 export default function RootNavigator() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, intendedRoute } = useAuth();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -135,7 +209,11 @@ export default function RootNavigator() {
     return <AuthNavigator />;
   }
 
-  return user.role === 'admin' ? <AdminNavigator /> : <CustomerNavigator />;
+  return user.role === 'admin' ? (
+    <AdminNavigator />
+  ) : (
+    <CustomerNavigator initialRouteName={intendedRoute} />
+  );
 }
 
 const styles = StyleSheet.create({
