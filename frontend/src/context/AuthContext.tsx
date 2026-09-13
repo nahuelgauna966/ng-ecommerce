@@ -12,7 +12,8 @@ import {
 
 import { setUnauthorizedHandler } from '../services/api';
 
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = 'jwt';
+const LEGACY_TOKEN_KEY = 'auth_token';
 
 // Coincide con el payload que firma el backend (ver JwtPayload en
 // backend/src/modules/auth/auth.service.ts): sub, email, role, iat, exp.
@@ -74,7 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadStoredToken = useCallback(async () => {
     setIsLoading(true);
     try {
-      const storedToken = await SecureStore.getItemAsync(TOKEN_KEY);
+      const storedToken =
+        (await SecureStore.getItemAsync(TOKEN_KEY)) ??
+        (await SecureStore.getItemAsync(LEGACY_TOKEN_KEY));
       if (!storedToken) {
         setToken(null);
         setUser(null);
@@ -83,10 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const decodedUser = decodeUser(storedToken);
       if (!decodedUser) {
         await SecureStore.deleteItemAsync(TOKEN_KEY);
+        await SecureStore.deleteItemAsync(LEGACY_TOKEN_KEY);
         setToken(null);
         setUser(null);
         return;
       }
+      await SecureStore.setItemAsync(TOKEN_KEY, storedToken);
+      await SecureStore.deleteItemAsync(LEGACY_TOKEN_KEY);
       setToken(storedToken);
       setUser(decodedUser);
     } finally {
@@ -103,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(LEGACY_TOKEN_KEY);
     setToken(null);
     setUser(null);
     setIntendedRoute(null);

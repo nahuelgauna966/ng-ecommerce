@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
 
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = 'jwt';
 let unauthorizedHandler: (() => Promise<void>) | null = null;
 let isHandlingUnauthorized = false;
 
