@@ -24,7 +24,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 type AuthStackParamList = {
   Home: undefined;
   Catalog: undefined;
-  ProductDetail: undefined;
+  ProductDetail: { id: number };
   Login: undefined;
   Register: undefined;
   Cart: undefined;
@@ -36,7 +36,7 @@ type AuthStackParamList = {
 type CustomerStackParamList = {
   Home: undefined;
   Catalog: undefined;
-  ProductDetail: undefined;
+  ProductDetail: { id: number };
   Cart: undefined;
   Checkout: undefined;
   MyOrders: undefined;
