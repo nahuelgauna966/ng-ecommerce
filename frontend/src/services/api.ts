@@ -108,6 +108,9 @@ export interface Product {
     id: number;
     name: string;
   };
+  stock?: {
+    quantity: number;
+  };
 }
 
 export interface PaginatedProducts {
