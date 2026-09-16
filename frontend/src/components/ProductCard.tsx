@@ -1,6 +1,7 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Product } from '../services/api';
+import { useCartStore } from '../store/cartStore';
 
 interface ProductCardProps {
   product: Product;
@@ -8,6 +9,11 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onPress }: ProductCardProps) {
+  const quantity = useCartStore(
+    (state) =>
+      state.items.find((item) => item.productId === product.id)?.quantity ?? 0,
+  );
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -19,6 +25,11 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
       ) : (
         <View style={styles.imagePlaceholder}>
           <Text style={styles.placeholderText}>Sin imagen</Text>
+        </View>
+      )}
+      {quantity > 0 && (
+        <View style={styles.cartBadge}>
+          <Text style={styles.cartBadgeText}>{quantity} en carrito</Text>
         </View>
       )}
       <View style={styles.content}>
@@ -54,6 +65,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#e5e7eb',
     height: 160,
     justifyContent: 'center',
+  },
+  cartBadge: {
+    backgroundColor: '#2563eb',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    position: 'absolute',
+    right: 10,
+    top: 10,
+  },
+  cartBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
   },
   placeholderText: {
     color: '#6b7280',

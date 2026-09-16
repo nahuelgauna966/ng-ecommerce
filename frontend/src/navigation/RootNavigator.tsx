@@ -10,6 +10,7 @@ import {
 import { useEffect } from 'react';
 
 import { type ProtectedRouteName, useAuth } from '../context/AuthContext';
+import { useCartStore } from '../store/cartStore';
 import CartScreen from '../screens/CartScreen';
 import CatalogScreen from '../screens/CatalogScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
@@ -70,6 +71,25 @@ function AdminPlaceholderScreen({ title }: { title: string }) {
     <View style={styles.loadingContainer}>
       <Text style={styles.loadingText}>{title}</Text>
     </View>
+  );
+}
+
+function CartHeaderButton({ onPress }: { onPress: () => void }) {
+  const totalItems = useCartStore((state) => state.totalItems());
+
+  return (
+    <Pressable
+      accessibilityLabel={`Carrito con ${totalItems} productos`}
+      onPress={onPress}
+      style={styles.cartHeaderButton}
+    >
+      <Text style={styles.cartIcon}>🛒</Text>
+      {totalItems > 0 && (
+        <View style={styles.cartBadge}>
+          <Text style={styles.cartBadgeText}>{totalItems}</Text>
+        </View>
+      )}
+    </Pressable>
   );
 }
 
@@ -181,11 +201,24 @@ function CustomerNavigator({
           ),
         }}
       />
-      <CustomerStack.Screen name="Catalog" component={CatalogScreen} />
+      <CustomerStack.Screen
+        name="Catalog"
+        component={CatalogScreen}
+        options={({ navigation }) => ({
+          headerRight: () => (
+            <CartHeaderButton onPress={() => navigation.navigate('Cart')} />
+          ),
+        })}
+      />
       <CustomerStack.Screen
         name="ProductDetail"
         component={ProductDetailScreen}
-        options={{ title: 'Producto' }}
+        options={({ navigation }) => ({
+          title: 'Producto',
+          headerRight: () => (
+            <CartHeaderButton onPress={() => navigation.navigate('Cart')} />
+          ),
+        })}
       />
       <CustomerStack.Screen name="Cart" component={CartScreen} />
       <CustomerStack.Screen name="Checkout" component={CheckoutScreen} />
@@ -286,5 +319,28 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 15,
     fontWeight: '600',
+  },
+  cartHeaderButton: {
+    padding: 8,
+    position: 'relative',
+  },
+  cartIcon: {
+    fontSize: 21,
+  },
+  cartBadge: {
+    alignItems: 'center',
+    backgroundColor: '#dc2626',
+    borderRadius: 9,
+    height: 18,
+    justifyContent: 'center',
+    minWidth: 18,
+    position: 'absolute',
+    right: 0,
+    top: 2,
+  },
+  cartBadgeText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
