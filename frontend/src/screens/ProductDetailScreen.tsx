@@ -18,6 +18,7 @@ import {
 
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage, productsApi, type Product } from '../services/api';
+import { useCartStore } from '../store/cartStore';
 
 type AuthStackParamList = {
   ProductDetail: { id: number };
@@ -35,10 +36,16 @@ export default function ProductDetailScreen() {
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { params } = useRoute<ProductDetailRoute>();
+  const cartItem = useCartStore((state) =>
+    state.items.find((item) => item.productId === params.id),
+  );
+  const addItem = useCartStore((state) => state.addItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const loadProduct = useCallback(async () => {
     setIsLoading(true);
@@ -58,6 +65,14 @@ export default function ProductDetailScreen() {
     void loadProduct();
   }, [loadProduct]);
 
+  useEffect(() => {
+    if (!feedback) {
+      return;
+    }
+    const timeout = setTimeout(() => setFeedback(null), 2_500);
+    return () => clearTimeout(timeout);
+  }, [feedback]);
+
   const handleAddToCart = () => {
     if (!user) {
       Alert.alert(
@@ -68,6 +83,12 @@ export default function ProductDetailScreen() {
           { text: 'Iniciar sesión', onPress: () => navigation.navigate('Login') },
         ],
       );
+      return;
+    }
+
+    if (product) {
+      addItem(product, quantity);
+      setFeedback('Producto agregado al carrito.');
     }
   };
 
@@ -92,7 +113,20 @@ export default function ProductDetailScreen() {
 
   const stock = product.stock?.quantity ?? 0;
   const isOutOfStock = stock === 0;
-  const actionDisabled = isOutOfStock || Boolean(user);
+  const selectedQuantity = cartItem?.quantity ?? quantity;
+
+  const changeQuantity = (nextQuantity: number) => {
+    if (cartItem) {
+      updateQuantity(product.id, nextQuantity);
+      setFeedback(
+        nextQuantity === 0
+          ? 'Producto quitado del carrito.'
+          : 'Cantidad actualizada en el carrito.',
+      );
+      return;
+    }
+    setQuantity(nextQuantity);
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -120,24 +154,29 @@ export default function ProductDetailScreen() {
 
         {!isOutOfStock && (
           <View style={styles.quantityRow}>
-            <Text style={styles.quantityLabel}>Cantidad</Text>
+            <Text style={styles.quantityLabel}>
+              {cartItem ? 'En tu carrito' : 'Cantidad'}
+            </Text>
             <View style={styles.quantityControl}>
               <Pressable
                 accessibilityLabel="Disminuir cantidad"
-                disabled={quantity <= 1}
-                onPress={() => setQuantity((current) => current - 1)}
-                style={[styles.quantityButton, quantity <= 1 && styles.controlDisabled]}
+                disabled={!cartItem && selectedQuantity <= 1}
+                onPress={() => changeQuantity(selectedQuantity - 1)}
+                style={[
+                  styles.quantityButton,
+                  !cartItem && selectedQuantity <= 1 && styles.controlDisabled,
+                ]}
               >
                 <Text style={styles.quantityButtonText}>−</Text>
               </Pressable>
-              <Text style={styles.quantity}>{quantity}</Text>
+              <Text style={styles.quantity}>{selectedQuantity}</Text>
               <Pressable
                 accessibilityLabel="Aumentar cantidad"
-                disabled={quantity >= stock}
-                onPress={() => setQuantity((current) => current + 1)}
+                disabled={selectedQuantity >= stock}
+                onPress={() => changeQuantity(selectedQuantity + 1)}
                 style={[
                   styles.quantityButton,
-                  quantity >= stock && styles.controlDisabled,
+                  selectedQuantity >= stock && styles.controlDisabled,
                 ]}
               >
                 <Text style={styles.quantityButtonText}>+</Text>
@@ -146,19 +185,19 @@ export default function ProductDetailScreen() {
           </View>
         )}
 
-        <Pressable
-          disabled={actionDisabled}
-          onPress={handleAddToCart}
-          style={[styles.addButton, actionDisabled && styles.buttonDisabled]}
-        >
-          <Text style={styles.addButtonText}>
-            {isOutOfStock
-              ? 'Sin stock'
-              : user
-                ? 'Carrito disponible próximamente'
-                : 'Agregar al carrito'}
-          </Text>
-        </Pressable>
+        {feedback && <Text style={styles.feedback}>{feedback}</Text>}
+
+        {!cartItem && (
+          <Pressable
+            disabled={isOutOfStock}
+            onPress={handleAddToCart}
+            style={[styles.addButton, isOutOfStock && styles.buttonDisabled]}
+          >
+            <Text style={styles.addButtonText}>
+              {isOutOfStock ? 'Sin stock' : 'Agregar al carrito'}
+            </Text>
+          </Pressable>
+        )}
       </View>
     </ScrollView>
   );
@@ -276,6 +315,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  feedback: {
+    color: '#15803d',
+    fontSize: 15,
+    fontWeight: '600',
+    marginTop: 24,
+    textAlign: 'center',
   },
   errorText: {
     color: '#b91c1c',
