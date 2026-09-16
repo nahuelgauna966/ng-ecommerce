@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { setUnauthorizedHandler } from '../services/api';
+import { useCartStore } from '../store/cartStore';
 
 const TOKEN_KEY = 'jwt';
 const LEGACY_TOKEN_KEY = 'auth_token';
@@ -110,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(LEGACY_TOKEN_KEY);
+    useCartStore.getState().clearCart();
     setToken(null);
     setUser(null);
     setIntendedRoute(null);
