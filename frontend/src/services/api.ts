@@ -144,7 +144,15 @@ export interface Order {
   createdAt: string;
 }
 
+export interface CreateOrderPayload {
+  items: Array<{
+    productId: number;
+    quantity: number;
+  }>;
+}
+
 export const ordersApi = {
+  create: (payload: CreateOrderPayload) => api.post<Order>('/orders', payload),
   getMyOrders: () => api.get<Order[]>('/orders/my-orders'),
 };
 
