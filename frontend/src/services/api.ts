@@ -144,6 +144,24 @@ export interface Order {
   createdAt: string;
 }
 
+export interface OrderDetailItem {
+  id: number;
+  quantity: number;
+  unitPrice: string;
+  product: Pick<Product, 'id' | 'imageUrl' | 'name'> | null;
+}
+
+export interface Payment {
+  method: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface OrderDetails extends Order {
+  orderDetails: OrderDetailItem[];
+  payment?: Payment | null;
+}
+
 export interface CreateOrderPayload {
   items: Array<{
     productId: number;
@@ -154,6 +172,7 @@ export interface CreateOrderPayload {
 export const ordersApi = {
   create: (payload: CreateOrderPayload) => api.post<Order>('/orders', payload),
   getMyOrders: () => api.get<Order[]>('/orders/my-orders'),
+  getById: (id: number) => api.get<OrderDetails>(`/orders/${id}`),
 };
 
 export default api;
