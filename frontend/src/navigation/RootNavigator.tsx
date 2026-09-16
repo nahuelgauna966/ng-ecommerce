@@ -41,7 +41,7 @@ type CustomerStackParamList = {
   Cart: undefined;
   Checkout: undefined;
   MyOrders: undefined;
-  OrderDetail: undefined;
+  OrderDetail: { id: number };
   Profile: undefined;
 };
 
