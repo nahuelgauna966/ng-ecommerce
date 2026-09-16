@@ -18,6 +18,7 @@ import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MyOrdersScreen from '../screens/MyOrdersScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
+import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -42,6 +43,7 @@ type CustomerStackParamList = {
   Checkout: undefined;
   MyOrders: undefined;
   OrderDetail: { id: number };
+  PaymentSuccess: { orderId: number; total: string };
   Profile: undefined;
 };
 
@@ -231,6 +233,15 @@ function CustomerNavigator({
         name="OrderDetail"
         component={OrderDetailScreen}
         options={{ title: 'Pedido' }}
+      />
+      <CustomerStack.Screen
+        name="PaymentSuccess"
+        component={PaymentSuccessScreen}
+        options={{
+          gestureEnabled: false,
+          headerBackVisible: false,
+          title: 'Pago realizado',
+        }}
       />
       <CustomerStack.Screen name="Profile" component={ProfileScreen} />
     </CustomerStack.Navigator>
