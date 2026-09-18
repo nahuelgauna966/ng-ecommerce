@@ -96,6 +96,17 @@ export const authApi = {
     api.post('/auth/register', payload),
 };
 
+export interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
+export const usersApi = {
+  getMe: () => api.get<UserProfile>('/users/me'),
+};
+
 export interface Product {
   id: number;
   name: string;
