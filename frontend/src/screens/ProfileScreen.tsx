@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { getErrorMessage, ordersApi, usersApi, type UserProfile } from '../services/api';
 
 type CustomerStackParamList = {
+  EditProfile: undefined;
   MyOrders: undefined;
 };
 
@@ -108,6 +109,13 @@ export default function ProfileScreen() {
         style={({ pressed }) => [styles.ordersButton, pressed && styles.buttonPressed]}
       >
         <Text style={styles.ordersButtonText}>Mis Pedidos</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => navigation.navigate('EditProfile')}
+        style={({ pressed }) => [styles.editButton, pressed && styles.buttonPressed]}
+      >
+        <Text style={styles.editButtonText}>Editar perfil</Text>
       </Pressable>
       <Pressable
         accessibilityRole="button"
@@ -211,6 +219,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 12,
     padding: 14,
+  },
+  editButton: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    borderColor: '#2563eb',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 14,
+  },
+  editButtonText: {
+    color: '#2563eb',
+    fontSize: 16,
+    fontWeight: '700',
   },
   logoutButtonText: {
     color: '#dc2626',

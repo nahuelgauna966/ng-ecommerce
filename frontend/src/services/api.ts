@@ -103,8 +103,17 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface UpdateProfilePayload {
+  name?: string;
+  email?: string;
+  password?: string;
+  currentPassword?: string;
+}
+
 export const usersApi = {
   getMe: () => api.get<UserProfile>('/users/me'),
+  updateMe: (payload: UpdateProfilePayload) =>
+    api.patch<UserProfile>('/users/me', payload),
 };
 
 export interface Product {

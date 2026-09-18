@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 const SALT_ROUNDS = 10;
 
@@ -90,6 +92,32 @@ export class UsersService {
 
     const saved = await this.usersRepository.save(user);
     return this.stripPassword(saved);
+  }
+
+  async updateProfile(id: number, dto: UpdateProfileDto): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (dto.email && dto.email !== user.email) {
+      const existing = await this.findByEmail(dto.email);
+      if (existing) {
+        throw new ConflictException(`Ya existe un usuario con email ${dto.email}`);
+      }
+    }
+
+    if (dto.password) {
+      const userWithPassword = await this.usersRepository.findOne({
+        where: { id },
+        select: { id: true, password: true },
+      });
+      if (!userWithPassword || !dto.currentPassword || !(await bcrypt.compare(dto.currentPassword, userWithPassword.password))) {
+        throw new UnauthorizedException('La contraseña actual es incorrecta');
+      }
+      user.password = await bcrypt.hash(dto.password, SALT_ROUNDS);
+    }
+
+    if (dto.name !== undefined) user.name = dto.name;
+    if (dto.email !== undefined) user.email = dto.email;
+    return this.stripPassword(await this.usersRepository.save(user));
   }
 
   /**

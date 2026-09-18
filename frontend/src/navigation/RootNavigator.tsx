@@ -14,6 +14,7 @@ import { useCartStore } from '../store/cartStore';
 import CartScreen from '../screens/CartScreen';
 import CatalogScreen from '../screens/CatalogScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MyOrdersScreen from '../screens/MyOrdersScreen';
@@ -51,6 +52,7 @@ type CustomerStackParamList = {
     total: string;
   };
   PaymentSuccess: { orderId: number; total: string };
+  EditProfile: undefined;
   Profile: undefined;
 };
 
@@ -259,6 +261,7 @@ function CustomerNavigator({
           title: 'Pago realizado',
         }}
       />
+      <CustomerStack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Editar perfil' }} />
       <CustomerStack.Screen name="Profile" component={ProfileScreen} />
     </CustomerStack.Navigator>
   );
