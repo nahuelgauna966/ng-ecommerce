@@ -2,6 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Product } from '../services/api';
 import { useCartStore } from '../store/cartStore';
+import { colors, radii } from '../theme';
 
 interface ProductCardProps {
   product: Product;
@@ -45,9 +46,9 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     borderWidth: 1,
     marginHorizontal: 16,
     marginTop: 12,
@@ -62,12 +63,12 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     alignItems: 'center',
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.surfaceMuted,
     height: 160,
     justifyContent: 'center',
   },
   cartBadge: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.text,
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -76,26 +77,27 @@ const styles = StyleSheet.create({
     top: 10,
   },
   cartBadgeText: {
-    color: '#ffffff',
+    color: colors.inverseText,
     fontSize: 12,
     fontWeight: '700',
   },
   placeholderText: {
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
   content: {
     padding: 14,
   },
   name: {
+    color: colors.text,
     fontSize: 17,
     fontWeight: '700',
   },
   category: {
-    color: '#6b7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   price: {
-    color: '#2563eb',
+    color: colors.text,
     fontSize: 18,
     fontWeight: '700',
     marginTop: 8,

@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
@@ -18,10 +19,12 @@ import {
   type Category,
   type Product,
 } from '../services/api';
+import { colors, radii, spacing } from '../theme';
+import UiIcon from '../components/UiIcon';
 
 type CustomerStackParamList = {
   Home: undefined;
-  Catalog: undefined;
+  Catalog: { categoryId?: number; focusSearch?: boolean; search?: string } | undefined;
   ProductDetail: { id: number };
   Cart: undefined;
   Checkout: undefined;
@@ -34,10 +37,13 @@ type CatalogScreenProps = NativeStackScreenProps<CustomerStackParamList, 'Catalo
 
 const PAGE_SIZE = 10;
 
-export default function CatalogScreen({ navigation }: CatalogScreenProps) {
+export default function CatalogScreen({ navigation, route }: CatalogScreenProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>();
+  const [searchInput, setSearchInput] = useState(route.params?.search ?? '');
+  const [search, setSearch] = useState(route.params?.search ?? '');
+  const searchInputRef = useRef<TextInput>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,10 +52,10 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
   const [error, setError] = useState<string | null>(null);
 
   const loadPage = useCallback(
-    async (nextPage: number, replace = false, categoryId = selectedCategoryId) => {
+    async (nextPage: number, replace = false, categoryId = selectedCategoryId, searchTerm = search) => {
       try {
         setError(null);
-        const response = await productsApi.getAll(nextPage, PAGE_SIZE, categoryId);
+        const response = await productsApi.getAll(nextPage, PAGE_SIZE, categoryId, searchTerm);
         const { data, total: responseTotal } = response.data;
         setProducts((current) => (replace ? data : [...current, ...data]));
         setTotal(responseTotal);
@@ -58,7 +64,7 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
         setError(getErrorMessage(requestError));
       }
     },
-    [selectedCategoryId],
+    [search, selectedCategoryId],
   );
 
   const loadCategories = useCallback(async () => {
@@ -73,6 +79,19 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
   useEffect(() => {
     void loadPage(1, true).finally(() => setIsLoading(false));
   }, [loadPage]);
+
+  useEffect(() => {
+    const nextSearch = route.params?.search ?? '';
+    setSearchInput(nextSearch);
+    setSearch(nextSearch);
+    setSelectedCategoryId(route.params?.categoryId);
+  }, [route.params?.categoryId, route.params?.search]);
+
+  useEffect(() => {
+    if (route.params?.focusSearch) {
+      searchInputRef.current?.focus();
+    }
+  }, [route.params?.focusSearch]);
 
   useEffect(() => {
     void loadCategories();
@@ -95,6 +114,17 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
     setSelectedCategoryId(categoryId);
   };
 
+  const submitSearch = () => {
+    const nextSearch = searchInput.trim();
+    if (nextSearch === search) {
+      return;
+    }
+    setProducts([]);
+    setPage(1);
+    setTotal(0);
+    setSearch(nextSearch);
+  };
+
   const loadMore = async () => {
     if (isLoading || isRefreshing || isLoadingMore || products.length >= total) {
       return;
@@ -114,7 +144,8 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
 
   return (
     <FlatList
-      contentContainerStyle={products.length === 0 ? styles.emptyList : undefined}
+      contentContainerStyle={products.length === 0 ? styles.emptyList : styles.list}
+      style={styles.screen}
       data={products}
       keyExtractor={(item) => String(item.id)}
       ListEmptyComponent={
@@ -128,25 +159,33 @@ export default function CatalogScreen({ navigation }: CatalogScreenProps) {
         isLoadingMore ? <ActivityIndicator style={styles.footer} /> : null
       }
       ListHeaderComponent={
-        <ScrollView
-          contentContainerStyle={styles.chips}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          <CategoryChip
-            label="Todas"
-            onPress={() => selectCategory()}
-            selected={selectedCategoryId === undefined}
-          />
-          {categories.map((category) => (
-            <CategoryChip
-              key={category.id}
-              label={category.name}
-              onPress={() => selectCategory(category.id)}
-              selected={selectedCategoryId === category.id}
+        <>
+          <View style={styles.searchWrap}>
+            <UiIcon color={colors.textSecondary} name="search" size={23} />
+            <TextInput
+              accessibilityLabel="Buscar productos"
+              onChangeText={setSearchInput}
+              onSubmitEditing={submitSearch}
+              placeholder="Buscar productos"
+              placeholderTextColor={colors.textSecondary}
+              ref={searchInputRef}
+              returnKeyType="search"
+              style={styles.searchInput}
+              value={searchInput}
             />
-          ))}
-        </ScrollView>
+            {searchInput.length > 0 && (
+              <Pressable accessibilityLabel="Limpiar búsqueda" onPress={() => { setSearchInput(''); setSearch(''); }}>
+                <UiIcon color={colors.textSecondary} name="close" size={23} />
+              </Pressable>
+            )}
+          </View>
+          <ScrollView contentContainerStyle={styles.chips} horizontal showsHorizontalScrollIndicator={false}>
+            <CategoryChip label="Todas" onPress={() => selectCategory()} selected={selectedCategoryId === undefined} />
+            {categories.map((category) => (
+              <CategoryChip key={category.id} label={category.name} onPress={() => selectCategory(category.id)} selected={selectedCategoryId === category.id} />
+            ))}
+          </ScrollView>
+        </>
       }
       onEndReached={() => void loadMore()}
       onEndReachedThreshold={0.4}
@@ -185,6 +224,8 @@ function CategoryChip({
 }
 
 const styles = StyleSheet.create({
+  screen: { backgroundColor: colors.background },
+  list: { paddingBottom: spacing.xl },
   centered: {
     alignItems: 'center',
     flex: 1,
@@ -195,7 +236,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   emptyText: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -204,25 +245,28 @@ const styles = StyleSheet.create({
   },
   chips: {
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   chip: {
-    borderColor: '#9ca3af',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
   chipSelected: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: colors.text,
+    borderColor: colors.text,
   },
   chipText: {
-    color: '#374151',
+    color: colors.text,
     fontWeight: '600',
   },
   chipTextSelected: {
-    color: '#ffffff',
+    color: colors.inverseText,
   },
+  searchWrap: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.md, borderWidth: 1, flexDirection: 'row', marginHorizontal: spacing.lg, marginTop: spacing.lg, paddingHorizontal: spacing.md },
+  searchInput: { color: colors.text, flex: 1, fontSize: 14, minHeight: 44, paddingHorizontal: spacing.sm },
 });

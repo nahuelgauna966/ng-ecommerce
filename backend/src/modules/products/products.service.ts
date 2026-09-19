@@ -37,12 +37,26 @@ export class ProductsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
 
-    const [data, total] = await this.productsRepository.findAndCount({
-      relations: { category: true, stock: true },
-      where: query.categoryId ? { category: { id: query.categoryId } } : {},
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const queryBuilder = this.productsRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.stock', 'stock')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (query.categoryId) {
+      queryBuilder.andWhere('category.id = :categoryId', {
+        categoryId: query.categoryId,
+      });
+    }
+
+    if (query.search) {
+      queryBuilder.andWhere('LOWER(product.name) LIKE LOWER(:search)', {
+        search: `%${query.search}%`,
+      });
+    }
+
+    const [data, total] = await queryBuilder.getManyAndCount();
 
     return { data, total, page, limit };
   }

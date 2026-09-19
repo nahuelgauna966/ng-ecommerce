@@ -146,9 +146,14 @@ export interface Category {
 }
 
 export const productsApi = {
-  getAll: (page = 1, limit = 10, categoryId?: number) =>
+  getAll: (page = 1, limit = 10, categoryId?: number, search?: string) =>
     api.get<PaginatedProducts>('/products', {
-      params: { page, limit, ...(categoryId === undefined ? {} : { categoryId }) },
+      params: {
+        page,
+        limit,
+        ...(categoryId === undefined ? {} : { categoryId }),
+        ...(search?.trim() ? { search: search.trim() } : {}),
+      },
     }),
   getById: (id: number) => api.get<Product>(`/products/${id}`),
 };
