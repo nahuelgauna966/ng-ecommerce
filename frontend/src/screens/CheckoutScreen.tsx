@@ -4,7 +4,6 @@ import { useStripe } from '@stripe/stripe-react-native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,6 +17,7 @@ import { useCartStore } from '../store/cartStore';
 type CustomerStackParamList = {
   Cart: undefined;
   MyOrders: undefined;
+  PaymentSuccess: { orderId: number; total: string };
 };
 
 const currencyFormatter = new Intl.NumberFormat('es-AR', {
@@ -36,9 +36,14 @@ export default function CheckoutScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
+  const [pendingOrderTotal, setPendingOrderTotal] = useState<string | null>(null);
   const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
 
-  const payForOrder = async (orderId: number, existingClientSecret?: string) => {
+  const payForOrder = async (
+    orderId: number,
+    existingClientSecret?: string,
+    orderTotal = pendingOrderTotal,
+  ) => {
     setError(null);
     setIsSubmitting(true);
 
@@ -66,11 +71,7 @@ export default function CheckoutScreen() {
         throw new Error(paymentError.message);
       }
 
-      Alert.alert(
-        'Pago realizado',
-        'Tu pago fue procesado correctamente. Podés consultar el estado actualizado desde Mis Pedidos.',
-        [{ text: 'Ver mis pedidos', onPress: () => navigation.navigate('MyOrders') }],
-      );
+      navigation.replace('PaymentSuccess', { orderId, total: orderTotal ?? '0' });
     } catch (requestError) {
       setPendingOrderId(orderId);
       setError(
@@ -99,8 +100,9 @@ export default function CheckoutScreen() {
       });
       clearCart();
       setPendingOrderId(response.data.id);
+      setPendingOrderTotal(response.data.total);
       setIsSubmitting(false);
-      await payForOrder(response.data.id);
+      await payForOrder(response.data.id, undefined, response.data.total);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
       setIsSubmitting(false);
@@ -117,7 +119,13 @@ export default function CheckoutScreen() {
         {error && <Text style={styles.error}>{error}</Text>}
         <Pressable
           disabled={isSubmitting}
-          onPress={() => void payForOrder(pendingOrderId, paymentClientSecret ?? undefined)}
+          onPress={() =>
+            void payForOrder(
+              pendingOrderId,
+              paymentClientSecret ?? undefined,
+              pendingOrderTotal,
+            )
+          }
           style={({ pressed }) => [
             styles.confirmButton,
             (pressed || isSubmitting) && styles.buttonDisabled,
