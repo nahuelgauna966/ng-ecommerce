@@ -17,6 +17,12 @@ import { useCartStore } from '../store/cartStore';
 type CustomerStackParamList = {
   Cart: undefined;
   MyOrders: undefined;
+  PaymentError: {
+    clientSecret: string | null;
+    message: string;
+    orderId: number;
+    total: string;
+  };
   PaymentSuccess: { orderId: number; total: string };
 };
 
@@ -35,28 +41,22 @@ export default function CheckoutScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
-  const [pendingOrderTotal, setPendingOrderTotal] = useState<string | null>(null);
-  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
 
   const payForOrder = async (
     orderId: number,
-    existingClientSecret?: string,
-    orderTotal = pendingOrderTotal,
+    orderTotal: string,
   ) => {
     setError(null);
     setIsSubmitting(true);
+    let clientSecret: string | null = null;
 
     try {
-      const clientSecret =
-        existingClientSecret ??
-        (await paymentsApi.create({ orderId })).data.clientSecret;
+      clientSecret = (await paymentsApi.create({ orderId })).data.clientSecret;
 
       if (!clientSecret) {
         throw new Error('No se pudo iniciar el pago. Intentá nuevamente.');
       }
 
-      setPaymentClientSecret(clientSecret);
       const { error: initializationError } = await initPaymentSheet({
         merchantDisplayName: 'ng-ecommerce',
         paymentIntentClientSecret: clientSecret,
@@ -73,12 +73,12 @@ export default function CheckoutScreen() {
 
       navigation.replace('PaymentSuccess', { orderId, total: orderTotal ?? '0' });
     } catch (requestError) {
-      setPendingOrderId(orderId);
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : getErrorMessage(requestError),
-      );
+      navigation.replace('PaymentError', {
+        clientSecret,
+        message: requestError instanceof Error ? requestError.message : getErrorMessage(requestError),
+        orderId,
+        total: orderTotal,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -99,50 +99,13 @@ export default function CheckoutScreen() {
         })),
       });
       clearCart();
-      setPendingOrderId(response.data.id);
-      setPendingOrderTotal(response.data.total);
       setIsSubmitting(false);
-      await payForOrder(response.data.id, undefined, response.data.total);
+      await payForOrder(response.data.id, response.data.total);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
       setIsSubmitting(false);
     }
   };
-
-  if (pendingOrderId !== null) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.title}>Pago del pedido</Text>
-        <Text style={styles.emptyText}>
-          Tu pedido NE-{String(pendingOrderId).padStart(4, '0')} fue creado.
-        </Text>
-        {error && <Text style={styles.error}>{error}</Text>}
-        <Pressable
-          disabled={isSubmitting}
-          onPress={() =>
-            void payForOrder(
-              pendingOrderId,
-              paymentClientSecret ?? undefined,
-              pendingOrderTotal,
-            )
-          }
-          style={({ pressed }) => [
-            styles.confirmButton,
-            (pressed || isSubmitting) && styles.buttonDisabled,
-          ]}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.confirmButtonText}>Reintentar pago</Text>
-          )}
-        </Pressable>
-        <Pressable onPress={() => navigation.navigate('MyOrders')} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Ver mis pedidos</Text>
-        </Pressable>
-      </View>
-    );
-  }
 
   if (items.length === 0) {
     return (
