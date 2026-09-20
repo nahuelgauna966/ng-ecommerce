@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Pencil, Plus, Search } from "lucide-react";
+import { ImageIcon, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
@@ -11,6 +11,16 @@ import {
   ProductFormDialog,
 } from "@/components/product-form-dialog";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -30,6 +40,16 @@ interface PaginatedProducts {
 }
 
 const PRODUCTS_PER_PAGE = 10;
+
+function getDeleteErrorMessage(error: unknown): string {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { data?: { message?: string | string[] } } }).response;
+    const message = response?.data?.message;
+    return Array.isArray(message) ? message.join(", ") : message ?? "No se pudo eliminar el producto.";
+  }
+
+  return "No se pudo eliminar el producto. Intentá nuevamente.";
+}
 
 function formatCurrency(price: number | string): string {
   return new Intl.NumberFormat("es-AR", {
@@ -52,6 +72,9 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [productToDelete, setProductToDelete] = useState<AdminProduct | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ message: string; type: "error" | "success" } | null>(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -122,6 +145,29 @@ export default function ProductsPage() {
     () => Math.max(1, Math.ceil((products?.total ?? 0) / PRODUCTS_PER_PAGE)),
     [products?.total],
   );
+
+  async function handleDelete() {
+    if (!productToDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setToastMessage(null);
+    try {
+      await api.delete(`/products/${productToDelete.id}`);
+      setProducts((current) => current ? {
+        ...current,
+        data: current.data.filter((product) => product.id !== productToDelete.id),
+        total: Math.max(0, current.total - 1),
+      } : current);
+      setProductToDelete(null);
+      setToastMessage({ message: "Producto eliminado correctamente.", type: "success" });
+    } catch (error) {
+      setToastMessage({ message: getDeleteErrorMessage(error), type: "error" });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <section className="space-y-6 p-4 sm:p-6 lg:p-8">
@@ -237,6 +283,9 @@ export default function ProductsPage() {
                         <Button aria-label={`Actualizar imagen de ${product.name}`} onClick={() => setActiveDialog({ mode: "image", product })} size="icon-sm" variant="ghost">
                           <ImageIcon aria-hidden="true" />
                         </Button>
+                        <Button aria-label={`Eliminar ${product.name}`} onClick={() => setProductToDelete(product)} size="icon-sm" variant="ghost">
+                          <Trash2 aria-hidden="true" className="text-destructive" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -271,6 +320,43 @@ export default function ProductsPage() {
           onSaved={() => setRefreshKey((current) => current + 1)}
           product={activeDialog.product}
         />
+      ) : null}
+
+      <AlertDialog
+        onOpenChange={(isOpen) => {
+          if (!isOpen && !isDeleting) {
+            setProductToDelete(null);
+          }
+        }}
+        open={Boolean(productToDelete)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El producto &quot;{productToDelete?.name}&quot; será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDelete();
+              }}
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {toastMessage ? (
+        <div className={`fixed right-4 bottom-4 z-50 flex max-w-sm items-center gap-3 rounded-lg border bg-card p-4 text-sm shadow-lg ${toastMessage.type === "error" ? "text-destructive" : "text-emerald-600"}`} role="status">
+          <span>{toastMessage.message}</span>
+          <Button aria-label="Cerrar mensaje" onClick={() => setToastMessage(null)} size="icon-xs" variant="ghost">×</Button>
+        </div>
       ) : null}
     </section>
   );
