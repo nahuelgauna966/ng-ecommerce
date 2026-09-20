@@ -37,7 +37,8 @@ export class OrdersService {
     OrderStatus[]
   > = {
     [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
-    [OrderStatus.CONFIRMED]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+    [OrderStatus.CONFIRMED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
+    [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED],
     [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
     [OrderStatus.DELIVERED]: [],
     [OrderStatus.CANCELLED]: [],
