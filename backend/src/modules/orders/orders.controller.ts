@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -20,9 +21,10 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/auth.service';
 import { UserRole } from '../users/user.entity';
-import { OrdersService } from './orders.service';
+import { OrdersService, PaginatedAdminOrders } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { AdminOrdersQueryDto } from './dto/admin-orders-query.dto';
 import { Order } from './order.entity';
 
 @ApiTags('orders')
@@ -30,6 +32,15 @@ import { Order } from './order.entity';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Get()
+  findAllForAdmin(
+    @Query() query: AdminOrdersQueryDto,
+  ): Promise<PaginatedAdminOrders> {
+    return this.ordersService.findAllForAdmin(query);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('my-orders')

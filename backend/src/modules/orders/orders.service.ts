@@ -15,6 +15,16 @@ import { UserRole } from '../users/user.entity';
 import { JwtPayload } from '../auth/auth.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { AdminOrdersQueryDto } from './dto/admin-orders-query.dto';
+
+export interface PaginatedAdminOrders {
+  data: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  todayOrders: number;
+  todayRevenue: number;
+}
 
 @Injectable()
 export class OrdersService {
@@ -144,6 +154,66 @@ export class OrdersService {
       relations: { orderDetails: { product: true } },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async findAllForAdmin(
+    query: AdminOrdersQueryDto,
+  ): Promise<PaginatedAdminOrders> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const builder = this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.payment', 'payment')
+      .orderBy('order.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (query.status) {
+      builder.andWhere('order.status = :status', { status: query.status });
+    }
+    if (query.from) {
+      builder.andWhere('order.createdAt >= :from', { from: query.from });
+    }
+    if (query.to) {
+      builder.andWhere('order.createdAt < :to', {
+        to: new Date(new Date(query.to).getTime() + 24 * 60 * 60 * 1000),
+      });
+    }
+    if (query.search?.trim()) {
+      const search = query.search.trim();
+      const orderId = Number(search);
+      if (Number.isInteger(orderId) && orderId > 0) {
+        builder.andWhere('(order.id = :orderId OR LOWER(user.email) LIKE LOWER(:search))', {
+          orderId,
+          search: `%${search}%`,
+        });
+      } else {
+        builder.andWhere('LOWER(user.email) LIKE LOWER(:search)', {
+          search: `%${search}%`,
+        });
+      }
+    }
+
+    const [data, total] = await builder.getManyAndCount();
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const metrics = await this.orderRepository
+      .createQueryBuilder('order')
+      .select('COUNT(order.id)', 'todayOrders')
+      .addSelect('COALESCE(SUM(order.total), 0)', 'todayRevenue')
+      .where('order.createdAt >= :startOfToday', { startOfToday })
+      .andWhere('order.status != :cancelled', { cancelled: OrderStatus.CANCELLED })
+      .getRawOne<{ todayOrders: string; todayRevenue: string }>();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      todayOrders: Number(metrics?.todayOrders ?? 0),
+      todayRevenue: Number(metrics?.todayRevenue ?? 0),
+    };
   }
 
   /**
