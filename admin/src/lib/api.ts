@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const AUTH_TOKEN_STORAGE_KEY = "access_token";
+import { getAuthToken } from "@/lib/auth-token";
 
 export interface AuthResponse {
   access_token: string;
@@ -17,11 +17,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  if (typeof window === "undefined") {
-    return config;
-  }
-
-  const token = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  const token = getAuthToken();
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
