@@ -17,6 +17,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { User, UserRole } from './user.entity';
 
 @ApiTags('users')
@@ -35,9 +36,9 @@ export class UsersController {
   @Patch('me')
   updateProfile(
     @CurrentUser('sub') userId: number,
-    @Body() dto: UpdateUserDto,
+    @Body() dto: UpdateProfileDto,
   ): Promise<User> {
-    return this.usersService.update(userId, dto);
+    return this.usersService.updateProfile(userId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

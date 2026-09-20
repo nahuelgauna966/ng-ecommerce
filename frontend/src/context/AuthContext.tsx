@@ -50,6 +50,7 @@ interface AuthContextValue {
   intendedRoute: ProtectedRouteName | null;
   requestProtectedRoute: (route: ProtectedRouteName) => void;
   clearIntendedRoute: () => void;
+  updateUser: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -125,6 +126,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIntendedRoute(null);
   }, []);
 
+  const updateUser = useCallback((updatedUser: AuthUser) => {
+    setUser(updatedUser);
+  }, []);
+
   useEffect(() => {
     void loadStoredToken();
   }, [loadStoredToken]);
@@ -145,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       intendedRoute,
       requestProtectedRoute,
       clearIntendedRoute,
+      updateUser,
     }),
     [
       user,
@@ -156,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       intendedRoute,
       requestProtectedRoute,
       clearIntendedRoute,
+      updateUser,
     ],
   );
 
