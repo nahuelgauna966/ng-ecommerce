@@ -1,16 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
 
+import AppHeader from '../components/AppHeader';
 import { type ProtectedRouteName, useAuth } from '../context/AuthContext';
-import { useCartStore } from '../store/cartStore';
 import CartScreen from '../screens/CartScreen';
 import CatalogScreen from '../screens/CatalogScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
@@ -24,10 +17,13 @@ import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import { colors } from '../theme';
+
+type CatalogParams = { categoryId?: number; focusSearch?: boolean; search?: string } | undefined;
 
 type AuthStackParamList = {
   Home: undefined;
-  Catalog: undefined;
+  Catalog: CatalogParams;
   ProductDetail: { id: number };
   Login: undefined;
   Register: undefined;
@@ -39,18 +35,13 @@ type AuthStackParamList = {
 
 type CustomerStackParamList = {
   Home: undefined;
-  Catalog: undefined;
+  Catalog: CatalogParams;
   ProductDetail: { id: number };
   Cart: undefined;
   Checkout: undefined;
   MyOrders: undefined;
   OrderDetail: { id: number };
-  PaymentError: {
-    clientSecret: string | null;
-    message: string;
-    orderId: number;
-    total: string;
-  };
+  PaymentError: { clientSecret: string | null; message: string; orderId: number; total: string };
   PaymentSuccess: { orderId: number; total: string };
   EditProfile: undefined;
   Profile: undefined;
@@ -71,7 +62,7 @@ const AdminStack = createNativeStackNavigator<AdminStackParamList>();
 function LoadingScreen() {
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" />
+      <ActivityIndicator color={colors.text} size="large" />
       <Text style={styles.loadingText}>Cargando sesión...</Text>
     </View>
   );
@@ -85,88 +76,37 @@ function AdminPlaceholderScreen({ title }: { title: string }) {
   );
 }
 
-function CartHeaderButton({ onPress }: { onPress: () => void }) {
-  const totalItems = useCartStore((state) => state.totalItems());
-
-  return (
-    <Pressable
-      accessibilityLabel={`Carrito con ${totalItems} productos`}
-      onPress={onPress}
-      style={styles.cartHeaderButton}
-    >
-      <Text style={styles.cartIcon}>🛒</Text>
-      {totalItems > 0 && (
-        <View style={styles.cartBadge}>
-          <Text style={styles.cartBadgeText}>{totalItems}</Text>
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
 function AuthNavigator() {
   return (
-    <AuthStack.Navigator initialRouteName="Home">
+    <AuthStack.Navigator
+      initialRouteName="Home"
+      screenOptions={({ navigation }) => ({
+        contentStyle: { backgroundColor: colors.background },
+        header: ({ back }) => <AppHeader navigation={navigation} showBack={Boolean(back)} />,
+      })}
+    >
       <AuthStack.Screen name="Home" component={HomeScreen} />
       <AuthStack.Screen name="Catalog" component={CatalogScreen} />
-      <AuthStack.Screen
-        name="ProductDetail"
-        component={ProductDetailScreen}
-        options={{ title: 'Producto' }}
-      />
-      <AuthStack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ title: 'Iniciar sesión' }}
-      />
-      <AuthStack.Screen
-        name="Register"
-        component={RegisterScreen}
-        options={{ title: 'Crear cuenta' }}
-      />
-      <AuthStack.Screen name="Cart" options={{ title: 'Carrito' }}>
-        {({ navigation }) => (
-          <ProtectedRoute
-            destination="Cart"
-            redirectToLogin={() => navigation.replace('Login')}
-          />
-        )}
+      <AuthStack.Screen name="ProductDetail" component={ProductDetailScreen} />
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Register" component={RegisterScreen} />
+      <AuthStack.Screen name="Cart">
+        {({ navigation }) => <ProtectedRoute destination="Cart" redirectToLogin={() => navigation.replace('Login')} />}
       </AuthStack.Screen>
-      <AuthStack.Screen name="Checkout" options={{ title: 'Checkout' }}>
-        {({ navigation }) => (
-          <ProtectedRoute
-            destination="Checkout"
-            redirectToLogin={() => navigation.replace('Login')}
-          />
-        )}
+      <AuthStack.Screen name="Checkout">
+        {({ navigation }) => <ProtectedRoute destination="Checkout" redirectToLogin={() => navigation.replace('Login')} />}
       </AuthStack.Screen>
-      <AuthStack.Screen name="MyOrders" options={{ title: 'Mis pedidos' }}>
-        {({ navigation }) => (
-          <ProtectedRoute
-            destination="MyOrders"
-            redirectToLogin={() => navigation.replace('Login')}
-          />
-        )}
+      <AuthStack.Screen name="MyOrders">
+        {({ navigation }) => <ProtectedRoute destination="MyOrders" redirectToLogin={() => navigation.replace('Login')} />}
       </AuthStack.Screen>
-      <AuthStack.Screen name="Profile" options={{ title: 'Perfil' }}>
-        {({ navigation }) => (
-          <ProtectedRoute
-            destination="Profile"
-            redirectToLogin={() => navigation.replace('Login')}
-          />
-        )}
+      <AuthStack.Screen name="Profile">
+        {({ navigation }) => <ProtectedRoute destination="Profile" redirectToLogin={() => navigation.replace('Login')} />}
       </AuthStack.Screen>
     </AuthStack.Navigator>
   );
 }
 
-function ProtectedRoute({
-  destination,
-  redirectToLogin,
-}: {
-  destination: ProtectedRouteName;
-  redirectToLogin: () => void;
-}) {
+function ProtectedRoute({ destination, redirectToLogin }: { destination: ProtectedRouteName; redirectToLogin: () => void }) {
   const { requestProtectedRoute } = useAuth();
 
   useEffect(() => {
@@ -177,91 +117,31 @@ function ProtectedRoute({
   return <LoadingScreen />;
 }
 
-function CustomerNavigator({
-  initialRouteName,
-}: {
-  initialRouteName: ProtectedRouteName | null;
-}) {
-  const { clearIntendedRoute, logout } = useAuth();
+function CustomerNavigator({ initialRouteName }: { initialRouteName: ProtectedRouteName | null }) {
+  const { clearIntendedRoute } = useAuth();
 
   useEffect(() => {
     clearIntendedRoute();
   }, [clearIntendedRoute]);
 
-  const confirmLogout = () => {
-    Alert.alert('Cerrar sesión', '¿Querés cerrar sesión?', [
-      { style: 'cancel', text: 'Cancelar' },
-      {
-        style: 'destructive',
-        text: 'Cerrar sesión',
-        onPress: () => void logout(),
-      },
-    ]);
-  };
-
   return (
-    <CustomerStack.Navigator initialRouteName={initialRouteName ?? 'Home'}>
-      <CustomerStack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          headerRight: () => (
-            <Pressable onPress={confirmLogout} style={styles.headerLogout}>
-              <Text style={styles.headerLogoutText}>Salir</Text>
-            </Pressable>
-          ),
-        }}
-      />
-      <CustomerStack.Screen
-        name="Catalog"
-        component={CatalogScreen}
-        options={({ navigation }) => ({
-          headerRight: () => (
-            <CartHeaderButton onPress={() => navigation.navigate('Cart')} />
-          ),
-        })}
-      />
-      <CustomerStack.Screen
-        name="ProductDetail"
-        component={ProductDetailScreen}
-        options={({ navigation }) => ({
-          title: 'Producto',
-          headerRight: () => (
-            <CartHeaderButton onPress={() => navigation.navigate('Cart')} />
-          ),
-        })}
-      />
+    <CustomerStack.Navigator
+      initialRouteName={initialRouteName ?? 'Home'}
+      screenOptions={({ navigation }) => ({
+        contentStyle: { backgroundColor: colors.background },
+        header: ({ back }) => <AppHeader navigation={navigation} showBack={Boolean(back)} />,
+      })}
+    >
+      <CustomerStack.Screen name="Home" component={HomeScreen} />
+      <CustomerStack.Screen name="Catalog" component={CatalogScreen} />
+      <CustomerStack.Screen name="ProductDetail" component={ProductDetailScreen} />
       <CustomerStack.Screen name="Cart" component={CartScreen} />
       <CustomerStack.Screen name="Checkout" component={CheckoutScreen} />
-      <CustomerStack.Screen
-        name="MyOrders"
-        component={MyOrdersScreen}
-        options={{ title: 'Mis pedidos' }}
-      />
-      <CustomerStack.Screen
-        name="OrderDetail"
-        component={OrderDetailScreen}
-        options={{ title: 'Pedido' }}
-      />
-      <CustomerStack.Screen
-        name="PaymentError"
-        component={PaymentErrorScreen}
-        options={{
-          gestureEnabled: false,
-          headerBackVisible: false,
-          title: 'Error de pago',
-        }}
-      />
-      <CustomerStack.Screen
-        name="PaymentSuccess"
-        component={PaymentSuccessScreen}
-        options={{
-          gestureEnabled: false,
-          headerBackVisible: false,
-          title: 'Pago realizado',
-        }}
-      />
-      <CustomerStack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Editar perfil' }} />
+      <CustomerStack.Screen name="MyOrders" component={MyOrdersScreen} />
+      <CustomerStack.Screen name="OrderDetail" component={OrderDetailScreen} />
+      <CustomerStack.Screen name="PaymentError" component={PaymentErrorScreen} options={{ gestureEnabled: false, headerBackVisible: false }} />
+      <CustomerStack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} options={{ gestureEnabled: false, headerBackVisible: false }} />
+      <CustomerStack.Screen name="EditProfile" component={EditProfileScreen} />
       <CustomerStack.Screen name="Profile" component={ProfileScreen} />
     </CustomerStack.Navigator>
   );
@@ -269,108 +149,36 @@ function CustomerNavigator({
 
 function AdminNavigator() {
   const { logout } = useAuth();
-
   const confirmLogout = () => {
     Alert.alert('Cerrar sesión', '¿Querés cerrar sesión?', [
       { style: 'cancel', text: 'Cancelar' },
-      {
-        style: 'destructive',
-        text: 'Cerrar sesión',
-        onPress: () => void logout(),
-      },
+      { style: 'destructive', text: 'Cerrar sesión', onPress: () => void logout() },
     ]);
   };
 
   return (
     <AdminStack.Navigator initialRouteName="Dashboard">
-      <AdminStack.Screen
-        name="Dashboard"
-        options={{
-          title: 'Dashboard',
-          headerRight: () => (
-            <Pressable onPress={confirmLogout} style={styles.headerLogout}>
-              <Text style={styles.headerLogoutText}>Salir</Text>
-            </Pressable>
-          ),
-        }}
-      >
+      <AdminStack.Screen name="Dashboard" options={{ title: 'Dashboard', headerRight: () => <Pressable onPress={confirmLogout} style={styles.headerLogout}><Text style={styles.headerLogoutText}>Salir</Text></Pressable> }}>
         {() => <AdminPlaceholderScreen title="Dashboard" />}
       </AdminStack.Screen>
-      <AdminStack.Screen name="Products" options={{ title: 'Productos' }}>
-        {() => <AdminPlaceholderScreen title="Productos" />}
-      </AdminStack.Screen>
-      <AdminStack.Screen name="Categories" options={{ title: 'Categorías' }}>
-        {() => <AdminPlaceholderScreen title="Categorías" />}
-      </AdminStack.Screen>
-      <AdminStack.Screen name="Orders" options={{ title: 'Pedidos' }}>
-        {() => <AdminPlaceholderScreen title="Pedidos" />}
-      </AdminStack.Screen>
-      <AdminStack.Screen name="Users" options={{ title: 'Usuarios' }}>
-        {() => <AdminPlaceholderScreen title="Usuarios" />}
-      </AdminStack.Screen>
+      <AdminStack.Screen name="Products" options={{ title: 'Productos' }}>{() => <AdminPlaceholderScreen title="Productos" />}</AdminStack.Screen>
+      <AdminStack.Screen name="Categories" options={{ title: 'Categorías' }}>{() => <AdminPlaceholderScreen title="Categorías" />}</AdminStack.Screen>
+      <AdminStack.Screen name="Orders" options={{ title: 'Pedidos' }}>{() => <AdminPlaceholderScreen title="Pedidos" />}</AdminStack.Screen>
+      <AdminStack.Screen name="Users" options={{ title: 'Usuarios' }}>{() => <AdminPlaceholderScreen title="Usuarios" />}</AdminStack.Screen>
     </AdminStack.Navigator>
   );
 }
 
 export default function RootNavigator() {
   const { user, isLoading, intendedRoute } = useAuth();
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (!user) {
-    return <AuthNavigator />;
-  }
-
-  return user.role === 'admin' ? (
-    <AdminNavigator />
-  ) : (
-    <CustomerNavigator initialRouteName={intendedRoute} />
-  );
+  if (isLoading) return <LoadingScreen />;
+  if (!user) return <AuthNavigator />;
+  return user.role === 'admin' ? <AdminNavigator /> : <CustomerNavigator initialRouteName={intendedRoute} />;
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerLogout: {
-    padding: 8,
-  },
-  headerLogoutText: {
-    color: '#dc2626',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  cartHeaderButton: {
-    padding: 8,
-    position: 'relative',
-  },
-  cartIcon: {
-    fontSize: 21,
-  },
-  cartBadge: {
-    alignItems: 'center',
-    backgroundColor: '#dc2626',
-    borderRadius: 9,
-    height: 18,
-    justifyContent: 'center',
-    minWidth: 18,
-    position: 'absolute',
-    right: 0,
-    top: 2,
-  },
-  cartBadgeText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
+  loadingContainer: { alignItems: 'center', backgroundColor: colors.background, flex: 1, justifyContent: 'center', padding: 24 },
+  loadingText: { color: colors.text, fontSize: 20, fontWeight: '600', marginTop: 12 },
+  headerLogout: { padding: 8 },
+  headerLogoutText: { color: '#dc2626', fontSize: 15, fontWeight: '600' },
 });

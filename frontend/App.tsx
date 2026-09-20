@@ -29,7 +29,7 @@ export default function App() {
           </NavigationContainer>
         </AuthProvider>
       </StripeProvider>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </SafeAreaProvider>
   );
 }

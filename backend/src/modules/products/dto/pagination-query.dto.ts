@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PaginationQueryDto {
@@ -22,4 +22,14 @@ export class PaginationQueryDto {
   @IsInt()
   @IsOptional()
   categoryId?: number;
+
+  @ApiPropertyOptional({
+    example: 'placa de video',
+    description: 'Buscar productos por nombre',
+  })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString()
+  @MaxLength(100)
+  @IsOptional()
+  search?: string;
 }
