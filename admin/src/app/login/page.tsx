@@ -4,6 +4,7 @@ import axios from "axios";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { setAuthToken } from "@/lib/auth-token";
 import { api, type AuthResponse, type LoginPayload } from "@/lib/api";
 
 interface ApiError {
@@ -42,8 +43,9 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await api.post<AuthResponse>("/auth/login", credentials);
-      setSuccessMessage("Credenciales verificadas correctamente.");
+      const { data } = await api.post<AuthResponse>("/auth/login", credentials);
+      setAuthToken(data.access_token);
+      setSuccessMessage("Sesión iniciada correctamente.");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
