@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from './category.entity';
@@ -13,7 +17,9 @@ export class CategoriesService {
   ) {}
 
   findAll(): Promise<Category[]> {
-    return this.categoriesRepository.find();
+    return this.categoriesRepository.find({
+      relations: { products: true },
+    });
   }
 
   async findOne(id: number): Promise<Category> {
@@ -38,7 +44,18 @@ export class CategoriesService {
   }
 
   async remove(id: number): Promise<void> {
-    const category = await this.findOne(id);
+    const category = await this.categoriesRepository.findOne({
+      where: { id },
+      relations: { products: true },
+    });
+    if (!category) {
+      throw new NotFoundException(`Categoría con id ${id} no encontrada`);
+    }
+    if (category.products.length > 0) {
+      throw new BadRequestException(
+        'No se puede eliminar una categoría con productos asociados',
+      );
+    }
     await this.categoriesRepository.remove(category);
   }
 }
