@@ -169,10 +169,23 @@ export interface CreateOrderPayload {
   }>;
 }
 
+export interface CreatePaymentPayload {
+  orderId: number;
+}
+
+export interface CreatePaymentResponse {
+  clientSecret: string | null;
+}
+
 export const ordersApi = {
   create: (payload: CreateOrderPayload) => api.post<Order>('/orders', payload),
   getMyOrders: () => api.get<Order[]>('/orders/my-orders'),
   getById: (id: number) => api.get<OrderDetails>(`/orders/${id}`),
+};
+
+export const paymentsApi = {
+  create: (payload: CreatePaymentPayload) =>
+    api.post<CreatePaymentResponse>('/payments/create', payload),
 };
 
 export default api;

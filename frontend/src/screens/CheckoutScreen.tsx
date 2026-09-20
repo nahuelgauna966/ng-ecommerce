@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useStripe } from '@stripe/stripe-react-native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,7 +12,7 @@ import {
   View,
 } from 'react-native';
 
-import { getErrorMessage, ordersApi } from '../services/api';
+import { getErrorMessage, ordersApi, paymentsApi } from '../services/api';
 import { useCartStore } from '../store/cartStore';
 
 type CustomerStackParamList = {
@@ -31,8 +32,55 @@ export default function CheckoutScreen() {
   const items = useCartStore((state) => state.items);
   const totalPrice = useCartStore((state) => state.totalPrice());
   const clearCart = useCartStore((state) => state.clearCart);
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
+  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
+
+  const payForOrder = async (orderId: number, existingClientSecret?: string) => {
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const clientSecret =
+        existingClientSecret ??
+        (await paymentsApi.create({ orderId })).data.clientSecret;
+
+      if (!clientSecret) {
+        throw new Error('No se pudo iniciar el pago. Intentá nuevamente.');
+      }
+
+      setPaymentClientSecret(clientSecret);
+      const { error: initializationError } = await initPaymentSheet({
+        merchantDisplayName: 'ng-ecommerce',
+        paymentIntentClientSecret: clientSecret,
+      });
+      if (initializationError) {
+        throw new Error(initializationError.message);
+      }
+
+      const { error: paymentError } = await presentPaymentSheet();
+      if (paymentError) {
+        throw new Error(paymentError.message);
+      }
+
+      Alert.alert(
+        'Pago realizado',
+        'Tu pago fue procesado correctamente. Podés consultar el estado actualizado desde Mis Pedidos.',
+        [{ text: 'Ver mis pedidos', onPress: () => navigation.navigate('MyOrders') }],
+      );
+    } catch (requestError) {
+      setPendingOrderId(orderId);
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : getErrorMessage(requestError),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const confirmOrder = async () => {
     if (items.length === 0 || isSubmitting) {
@@ -49,17 +97,43 @@ export default function CheckoutScreen() {
         })),
       });
       clearCart();
-      Alert.alert(
-        'Pedido creado',
-        `Tu pedido #${response.data.id} fue creado. Podrás continuar el pago desde tus pedidos.`,
-        [{ text: 'Ver mis pedidos', onPress: () => navigation.navigate('MyOrders') }],
-      );
+      setPendingOrderId(response.data.id);
+      setIsSubmitting(false);
+      await payForOrder(response.data.id);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
-    } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (pendingOrderId !== null) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.title}>Pago del pedido</Text>
+        <Text style={styles.emptyText}>
+          Tu pedido NE-{String(pendingOrderId).padStart(4, '0')} fue creado.
+        </Text>
+        {error && <Text style={styles.error}>{error}</Text>}
+        <Pressable
+          disabled={isSubmitting}
+          onPress={() => void payForOrder(pendingOrderId, paymentClientSecret ?? undefined)}
+          style={({ pressed }) => [
+            styles.confirmButton,
+            (pressed || isSubmitting) && styles.buttonDisabled,
+          ]}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={styles.confirmButtonText}>Reintentar pago</Text>
+          )}
+        </Pressable>
+        <Pressable onPress={() => navigation.navigate('MyOrders')} style={styles.backButton}>
+          <Text style={styles.backButtonText}>Ver mis pedidos</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -116,7 +190,7 @@ export default function CheckoutScreen() {
         {isSubmitting ? (
           <ActivityIndicator color="#ffffff" />
         ) : (
-          <Text style={styles.confirmButtonText}>Confirmar pedido</Text>
+          <Text style={styles.confirmButtonText}>Confirmar y pagar</Text>
         )}
       </Pressable>
     </ScrollView>
