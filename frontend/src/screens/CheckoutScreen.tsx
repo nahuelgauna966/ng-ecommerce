@@ -55,6 +55,7 @@ export default function CheckoutScreen() {
       const { error: initializationError } = await initPaymentSheet({
         merchantDisplayName: 'ng-ecommerce',
         paymentIntentClientSecret: clientSecret,
+        returnURL: 'ng-ecommerce://payment-success',
       });
       if (initializationError) {
         throw new Error(initializationError.message);
