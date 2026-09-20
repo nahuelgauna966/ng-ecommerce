@@ -33,6 +33,9 @@ export class User {
   @Column({ default: true })
   isActive!: boolean;
 
+  // Se carga solo en los listados de administración, no es una columna.
+  orderCount?: number;
+
   @OneToMany(() => Order, (order: Order) => order.user)
   orders!: Order[];
 
