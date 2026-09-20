@@ -4,6 +4,12 @@ import { ImageIcon, Pencil, Plus, Search } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  type AdminProduct,
+  type ProductCategory,
+  type ProductDialogMode,
+  ProductFormDialog,
+} from "@/components/product-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,22 +22,8 @@ import {
 } from "@/components/ui/table";
 import { api } from "@/lib/api";
 
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Product {
-  id: number;
-  name: string;
-  imageUrl: string | null;
-  price: number | string;
-  category: Category | null;
-  stock: { quantity: number } | null;
-}
-
 interface PaginatedProducts {
-  data: Product[];
+  data: AdminProduct[];
   total: number;
   page: number;
   limit: number;
@@ -47,15 +39,19 @@ function formatCurrency(price: number | string): string {
 }
 
 export default function ProductsPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [categoryId, setCategoryId] = useState("");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<{
+    mode: ProductDialogMode;
+    product?: AdminProduct;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [products, setProducts] = useState<PaginatedProducts | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -71,7 +67,7 @@ export default function ProductsPage() {
 
     async function loadCategories() {
       try {
-        const { data } = await api.get<Category[]>("/categories");
+        const { data } = await api.get<ProductCategory[]>("/categories");
         if (isMounted) {
           setCategories(data);
         }
@@ -120,7 +116,7 @@ export default function ProductsPage() {
     return () => {
       isMounted = false;
     };
-  }, [categoryId, debouncedSearch, page]);
+  }, [categoryId, debouncedSearch, page, refreshKey]);
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil((products?.total ?? 0) / PRODUCTS_PER_PAGE)),
@@ -136,7 +132,7 @@ export default function ProductsPage() {
             Administrá el catálogo de productos.
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => setActiveDialog({ mode: "create" })}>
           <Plus aria-hidden="true" />
           Nuevo producto
         </Button>
@@ -235,10 +231,10 @@ export default function ProductsPage() {
                     <TableCell>{product.stock?.quantity ?? 0}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button aria-label={`Editar ${product.name}`} disabled size="icon-sm" variant="ghost">
+                        <Button aria-label={`Editar ${product.name}`} onClick={() => setActiveDialog({ mode: "edit", product })} size="icon-sm" variant="ghost">
                           <Pencil aria-hidden="true" />
                         </Button>
-                        <Button aria-label={`Actualizar imagen de ${product.name}`} disabled size="icon-sm" variant="ghost">
+                        <Button aria-label={`Actualizar imagen de ${product.name}`} onClick={() => setActiveDialog({ mode: "image", product })} size="icon-sm" variant="ghost">
                           <ImageIcon aria-hidden="true" />
                         </Button>
                       </div>
@@ -267,22 +263,14 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {isCreateDialogOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 p-4">
-          <section aria-labelledby="create-product-title" aria-modal="true" className="w-full max-w-md rounded-xl border bg-card p-6 shadow-lg" role="dialog">
-            <h2 className="text-lg font-semibold" id="create-product-title">
-              Nuevo producto
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              El formulario de creación estará disponible en la próxima etapa de gestión de productos.
-            </p>
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => setIsCreateDialogOpen(false)} variant="outline">
-                Cerrar
-              </Button>
-            </div>
-          </section>
-        </div>
+      {activeDialog ? (
+        <ProductFormDialog
+          categories={categories}
+          mode={activeDialog.mode}
+          onClose={() => setActiveDialog(null)}
+          onSaved={() => setRefreshKey((current) => current + 1)}
+          product={activeDialog.product}
+        />
       ) : null}
     </section>
   );
