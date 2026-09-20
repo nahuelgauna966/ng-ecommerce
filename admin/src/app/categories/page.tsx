@@ -46,7 +46,12 @@ export default function CategoriesPage() {
       setErrorMessage(null);
       try {
         const { data } = await api.get<AdminCategory[]>("/categories");
-        if (isMounted) setCategories(data);
+        if (isMounted && Array.isArray(data)) {
+          setCategories(data);
+        } else if (isMounted) {
+          setCategories([]);
+          setErrorMessage("La API devolvió una respuesta inválida para las categorías. Verificá la configuración local.");
+        }
       } catch {
         if (isMounted) setErrorMessage("No se pudieron cargar las categorías. Intentá nuevamente.");
       } finally {

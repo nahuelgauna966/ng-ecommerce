@@ -9,6 +9,17 @@ async function bootstrap() {
   // firma del webhook de Stripe (POST /payments/webhook).
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
+  const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:3001')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  app.enableCors({
+    origin: corsOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   // Activa la validación global de DTOs con class-validator
   app.useGlobalPipes(
     new ValidationPipe({

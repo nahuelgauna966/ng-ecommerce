@@ -61,6 +61,7 @@ function formatCurrency(price: number | string): string {
 export default function ProductsPage() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [categoryId, setCategoryId] = useState("");
+  const [categoryErrorMessage, setCategoryErrorMessage] = useState<string | null>(null);
   const [activeDialog, setActiveDialog] = useState<{
     mode: ProductDialogMode;
     product?: AdminProduct;
@@ -91,11 +92,18 @@ export default function ProductsPage() {
     async function loadCategories() {
       try {
         const { data } = await api.get<ProductCategory[]>("/categories");
-        if (isMounted) {
+        if (isMounted && Array.isArray(data)) {
           setCategories(data);
+          setCategoryErrorMessage(null);
+        } else if (isMounted) {
+          setCategories([]);
+          setCategoryErrorMessage("No se pudieron cargar las categorías. Verificá la configuración de la API.");
         }
       } catch {
-        // The products list remains usable if category loading fails.
+        if (isMounted) {
+          setCategories([]);
+          setCategoryErrorMessage("No se pudieron cargar las categorías. Verificá la conexión con la API.");
+        }
       }
     }
 
@@ -215,6 +223,7 @@ export default function ProductsPage() {
           ))}
         </select>
       </div>
+      {categoryErrorMessage ? <p className="text-sm text-destructive">{categoryErrorMessage}</p> : null}
 
       <div className="overflow-hidden rounded-xl border bg-card">
         <Table>
