@@ -12,6 +12,7 @@ import {
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -36,6 +37,7 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get()
+  @ApiOperation({ summary: 'Listar pedidos con filtros (solo admin)' })
   findAllForAdmin(
     @Query() query: AdminOrdersQueryDto,
   ): Promise<PaginatedAdminOrders> {
@@ -71,6 +73,7 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Ver el detalle completo de un pedido' })
+  @ApiParam({ name: 'id', example: 1, description: 'Id del pedido.' })
   @ApiResponse({ status: 200, description: 'Detalle del pedido.' })
   @ApiResponse({
     status: 403,
@@ -89,6 +92,7 @@ export class OrdersController {
   @Roles(UserRole.ADMIN)
   @Patch(':id/status')
   @ApiOperation({ summary: 'Cambiar el estado de un pedido (solo admin)' })
+  @ApiParam({ name: 'id', example: 1, description: 'Id del pedido.' })
   @ApiResponse({
     status: 200,
     description: 'Pedido con el estado actualizado.',
