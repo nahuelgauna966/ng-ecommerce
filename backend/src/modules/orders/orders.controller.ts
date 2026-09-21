@@ -11,11 +11,14 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiForbiddenResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { HttpErrorResponseDto } from '../../common/dto/http-error-response.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -38,6 +41,15 @@ export class OrdersController {
   @Roles(UserRole.ADMIN)
   @Get()
   @ApiOperation({ summary: 'Listar pedidos con filtros (solo admin)' })
+  @ApiResponse({ status: 200, description: 'Lista paginada de pedidos.' })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Se requiere rol admin.',
+    type: HttpErrorResponseDto,
+  })
   findAllForAdmin(
     @Query() query: AdminOrdersQueryDto,
   ): Promise<PaginatedAdminOrders> {
@@ -48,6 +60,10 @@ export class OrdersController {
   @Get('my-orders')
   @ApiOperation({ summary: 'Listar los pedidos del usuario autenticado' })
   @ApiResponse({ status: 200, description: 'Lista de pedidos del usuario.' })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
   findMyOrders(@CurrentUser('sub') userId: number): Promise<Order[]> {
     return this.ordersService.findByUser(userId);
   }
@@ -61,8 +77,17 @@ export class OrdersController {
   @ApiResponse({
     status: 400,
     description: 'Stock insuficiente para algún producto.',
+    type: HttpErrorResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Algún producto no existe.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Algún producto no existe.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
   create(
     @CurrentUser('sub') userId: number,
     @Body() dto: CreateOrderDto,
@@ -79,8 +104,17 @@ export class OrdersController {
     status: 403,
     description:
       'El pedido pertenece a otro usuario y quien pregunta no es admin.',
+    type: HttpErrorResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'El pedido no existe.' })
+  @ApiResponse({
+    status: 404,
+    description: 'El pedido no existe.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
@@ -100,8 +134,21 @@ export class OrdersController {
   @ApiResponse({
     status: 400,
     description: 'Transición de estado inválida (ej: delivered -> pending).',
+    type: HttpErrorResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'El pedido no existe.' })
+  @ApiResponse({
+    status: 404,
+    description: 'El pedido no existe.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Se requiere rol admin.',
+    type: HttpErrorResponseDto,
+  })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateOrderStatusDto,
