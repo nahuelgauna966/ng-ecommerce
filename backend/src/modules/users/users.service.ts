@@ -11,6 +11,14 @@ import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { AdminUsersQueryDto } from './dto/admin-users-query.dto';
+
+export interface PaginatedAdminUsers {
+  data: User[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 const SALT_ROUNDS = 10;
 
@@ -25,11 +33,58 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
+  async findAllForAdmin(
+    query: AdminUsersQueryDto,
+  ): Promise<PaginatedAdminUsers> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const builder = this.usersRepository
+      .createQueryBuilder('user')
+      .orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (query.role) {
+      builder.andWhere('user.role = :role', { role: query.role });
+    }
+    if (query.search?.trim()) {
+      builder.andWhere(
+        '(LOWER(user.name) LIKE LOWER(:search) OR LOWER(user.email) LIKE LOWER(:search))',
+        { search: `%${query.search.trim()}%` },
+      );
+    }
+
+    const total = await builder.getCount();
+    const { entities, raw } = await builder
+      .leftJoin('user.orders', 'order')
+      .addSelect('COUNT(order.id)', 'orderCount')
+      .groupBy('user.id')
+      .getRawAndEntities();
+    const data = entities.map((user, index) => {
+      user.orderCount = Number(raw[index]?.orderCount ?? 0);
+      return user;
+    });
+    return { data, total, page, limit };
+  }
+
   async findOne(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`Usuario con id ${id} no encontrado`);
     }
+    return user;
+  }
+
+  async findOneForAdmin(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: { orders: { payment: true } },
+      order: { orders: { createdAt: 'DESC' } },
+    });
+    if (!user) {
+      throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+    }
+    user.orderCount = user.orders.length;
     return user;
   }
 
