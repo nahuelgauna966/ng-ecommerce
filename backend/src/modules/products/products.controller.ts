@@ -19,6 +19,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
+  ApiBody,
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiConsumes,
@@ -27,6 +28,7 @@ import {
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -147,7 +149,45 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post(':id/image')
+  @ApiOperation({
+    summary: 'Subir o reemplazar la imagen de un producto (solo admin)',
+  })
+  @ApiParam({ name: 'id', example: 1, description: 'Id del producto.' })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Archivo de imagen JPEG, PNG o WebP de hasta 5 MiB.',
+    schema: {
+      type: 'object',
+      required: ['image'],
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: 'Imagen JPEG, PNG o WebP. Tamaño máximo: 5 MiB.',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Imagen del producto actualizada correctamente.',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'No se envió una imagen válida, el formato no está permitido o supera 5 MiB.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Se requiere rol admin.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'El producto no existe.',
+    type: HttpErrorResponseDto,
+  })
   @UseInterceptors(FileInterceptor('image'))
   uploadImage(
     @Param('id', ParseIntPipe) id: number,
