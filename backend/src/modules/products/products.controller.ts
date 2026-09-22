@@ -18,7 +18,20 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { HttpErrorResponseDto } from '../../common/dto/http-error-response.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -35,6 +48,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
+  @ApiOkResponse({ description: 'Lista paginada de productos.' })
   findAll(
     @Query() query: PaginationQueryDto,
   ): Promise<PaginatedResult<Product>> {
@@ -42,6 +56,12 @@ export class ProductsController {
   }
 
   @Get(':id')
+  @ApiParam({ name: 'id', example: 1, description: 'Id del producto.' })
+  @ApiOkResponse({ description: 'Producto encontrado.' })
+  @ApiNotFoundResponse({
+    description: 'El producto no existe.',
+    type: HttpErrorResponseDto,
+  })
   findOne(@Param('id', ParseIntPipe) id: number): Promise<Product> {
     return this.productsService.findOne(id);
   }
@@ -50,6 +70,23 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post()
+  @ApiCreatedResponse({ description: 'Producto creado correctamente.' })
+  @ApiBadRequestResponse({
+    description: 'Los datos enviados no cumplen las validaciones.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Se requiere rol admin.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'La categoría indicada no existe.',
+    type: HttpErrorResponseDto,
+  })
   create(@Body() dto: CreateProductDto): Promise<Product> {
     return this.productsService.create(dto);
   }
@@ -58,6 +95,24 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Put(':id')
+  @ApiParam({ name: 'id', example: 1, description: 'Id del producto.' })
+  @ApiOkResponse({ description: 'Producto actualizado correctamente.' })
+  @ApiBadRequestResponse({
+    description: 'Los datos enviados no cumplen las validaciones.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Se requiere rol admin.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'El producto o la categoría indicada no existe.',
+    type: HttpErrorResponseDto,
+  })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateProductDto,
@@ -70,6 +125,20 @@ export class ProductsController {
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiParam({ name: 'id', example: 1, description: 'Id del producto.' })
+  @ApiNoContentResponse({ description: 'Producto eliminado correctamente.' })
+  @ApiUnauthorizedResponse({
+    description: 'Falta autenticación.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Se requiere rol admin.',
+    type: HttpErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'El producto no existe.',
+    type: HttpErrorResponseDto,
+  })
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.productsService.remove(id);
   }
