@@ -12,9 +12,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 
-import { clearAuthToken } from "@/lib/auth-token";
+import {
+  clearAuthToken,
+  getAuthToken,
+  subscribeToAuthToken,
+} from "@/lib/auth-token";
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
@@ -80,7 +84,35 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const authToken = useSyncExternalStore(
+    subscribeToAuthToken,
+    getAuthToken,
+    () => undefined,
+  );
+
+  useEffect(() => {
+    if (authToken === undefined) {
+      return;
+    }
+
+    if (pathname === "/login") {
+      if (authToken) {
+        router.replace("/");
+      }
+    } else if (!authToken) {
+      router.replace("/login");
+    }
+  }, [authToken, pathname, router]);
+
+  if (authToken === undefined || (pathname === "/login" ? Boolean(authToken) : !authToken)) {
+    return (
+      <main className="flex min-h-svh items-center justify-center bg-muted/40 p-6 text-sm text-muted-foreground">
+        Verificando sesión...
+      </main>
+    );
+  }
 
   if (pathname === "/login") {
     return children;
