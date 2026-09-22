@@ -2,7 +2,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,7 +16,7 @@ import {
   type OrderDetailItem,
 } from '../services/api';
 import { colors } from '../theme';
-import UiIcon from '../components/UiIcon';
+import RemoteProductImage from '../components/RemoteProductImage';
 
 type CustomerStackParamList = {
   MyOrders: undefined;
@@ -152,13 +151,11 @@ function OrderItem({ item }: { item: OrderDetailItem }) {
 
   return (
     <View style={styles.item}>
-      {item.product?.imageUrl ? (
-        <Image source={{ uri: item.product.imageUrl }} style={styles.image} />
-      ) : (
-        <View style={styles.imagePlaceholder}>
-          <UiIcon color={colors.textSecondary} name="products" size={28} />
-        </View>
-      )}
+      <RemoteProductImage
+        accessibilityLabel={`Imagen de ${item.product?.name ?? 'producto no disponible'}`}
+        containerStyle={styles.image}
+        uri={item.product?.imageUrl}
+      />
       <View style={styles.itemContent}>
         <Text numberOfLines={2} style={styles.itemName}>
           {item.product?.name ?? 'Producto no disponible'}

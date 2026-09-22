@@ -1,8 +1,9 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Product } from '../services/api';
 import { useCartStore } from '../store/cartStore';
 import { colors, radii } from '../theme';
+import RemoteProductImage from './RemoteProductImage';
 
 interface ProductCardProps {
   product: Product;
@@ -21,13 +22,11 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
     >
-      {product.imageUrl ? (
-        <Image source={{ uri: product.imageUrl }} style={styles.image} />
-      ) : (
-        <View style={styles.imagePlaceholder}>
-          <Text style={styles.placeholderText}>Sin imagen</Text>
-        </View>
-      )}
+      <RemoteProductImage
+        accessibilityLabel={`Imagen de ${product.name}`}
+        containerStyle={styles.image}
+        uri={product.imageUrl}
+      />
       {quantity > 0 && (
         <View style={styles.cartBadge}>
           <Text style={styles.cartBadgeText}>{quantity} en carrito</Text>

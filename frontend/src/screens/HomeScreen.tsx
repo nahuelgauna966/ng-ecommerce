@@ -2,7 +2,6 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 
 import CategoryCard from '../components/CategoryCard';
+import RemoteProductImage from '../components/RemoteProductImage';
 import UiIcon from '../components/UiIcon';
 import {
   categoriesApi,
@@ -84,9 +84,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         onPress={() => navigation.navigate('Catalog')}
         style={({ pressed }) => [styles.banner, pressed && styles.pressed]}
       >
-        {featuredProduct?.imageUrl && (
-          <Image source={{ uri: featuredProduct.imageUrl }} style={styles.bannerImage} />
-        )}
+        <RemoteProductImage
+          accessibilityLabel={`Imagen destacada de ${featuredProduct?.name ?? 'hardware'}`}
+          containerStyle={styles.bannerImage}
+          uri={featuredProduct?.imageUrl}
+        />
         <View style={styles.bannerShade} />
         <View style={styles.bannerContent}>
           <Text style={styles.bannerTitle}>Potenciá tu PC</Text>
