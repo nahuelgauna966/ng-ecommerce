@@ -71,6 +71,7 @@ export default function CheckoutScreen() {
         throw new Error(paymentError.message);
       }
 
+      clearCart();
       navigation.replace('PaymentSuccess', { orderId, total: orderTotal ?? '0' });
     } catch (requestError) {
       navigation.replace('PaymentError', {
@@ -98,8 +99,6 @@ export default function CheckoutScreen() {
           quantity: item.quantity,
         })),
       });
-      clearCart();
-      setIsSubmitting(false);
       await payForOrder(response.data.id, response.data.total);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
