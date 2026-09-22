@@ -17,6 +17,7 @@ import {
   type OrderDetailItem,
 } from '../services/api';
 import { colors } from '../theme';
+import UiIcon from '../components/UiIcon';
 
 type CustomerStackParamList = {
   MyOrders: undefined;
@@ -155,7 +156,7 @@ function OrderItem({ item }: { item: OrderDetailItem }) {
         <Image source={{ uri: item.product.imageUrl }} style={styles.image} />
       ) : (
         <View style={styles.imagePlaceholder}>
-          <Text>📦</Text>
+          <UiIcon color={colors.textSecondary} name="products" size={28} />
         </View>
       )}
       <View style={styles.itemContent}>
