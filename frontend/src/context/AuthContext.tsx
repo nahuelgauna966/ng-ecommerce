@@ -104,6 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (newToken: string) => {
     const decodedUser = decodeUser(newToken);
+    if (!decodedUser) {
+      throw new Error('La sesión recibida no es válida. Intentá iniciar sesión nuevamente.');
+    }
     await SecureStore.setItemAsync(TOKEN_KEY, newToken);
     setToken(newToken);
     setUser(decodedUser);
