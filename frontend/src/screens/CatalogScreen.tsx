@@ -50,17 +50,28 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const latestRequestId = useRef(0);
+  const isLoadingMoreRef = useRef(false);
+  const appliedRouteQuery = useRef<string | null>(null);
 
   const loadPage = useCallback(
     async (nextPage: number, replace = false, categoryId = selectedCategoryId, searchTerm = search) => {
+      const requestId = latestRequestId.current + 1;
+      latestRequestId.current = requestId;
       try {
         setError(null);
         const response = await productsApi.getAll(nextPage, PAGE_SIZE, categoryId, searchTerm);
         const { data, total: responseTotal } = response.data;
+        if (requestId !== latestRequestId.current) {
+          return;
+        }
         setProducts((current) => (replace ? data : [...current, ...data]));
         setTotal(responseTotal);
         setPage(nextPage);
       } catch (requestError) {
+        if (requestId !== latestRequestId.current) {
+          return;
+        }
         setError(getErrorMessage(requestError));
       }
     },
@@ -82,9 +93,24 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
 
   useEffect(() => {
     const nextSearch = route.params?.search ?? '';
+    const nextCategoryId = route.params?.categoryId;
+    const routeQuery = `${nextCategoryId ?? ''}:${nextSearch}`;
+    if (appliedRouteQuery.current === null) {
+      appliedRouteQuery.current = routeQuery;
+      return;
+    }
+    if (appliedRouteQuery.current === routeQuery) {
+      return;
+    }
+    appliedRouteQuery.current = routeQuery;
+    latestRequestId.current += 1;
     setSearchInput(nextSearch);
     setSearch(nextSearch);
-    setSelectedCategoryId(route.params?.categoryId);
+    setSelectedCategoryId(nextCategoryId);
+    setProducts([]);
+    setPage(1);
+    setTotal(0);
+    setError(null);
   }, [route.params?.categoryId, route.params?.search]);
 
   useEffect(() => {
@@ -108,9 +134,11 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
     if (categoryId === selectedCategoryId) {
       return;
     }
+    latestRequestId.current += 1;
     setProducts([]);
     setPage(1);
     setTotal(0);
+    setError(null);
     setSelectedCategoryId(categoryId);
   };
 
@@ -119,19 +147,31 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
     if (nextSearch === search) {
       return;
     }
+    latestRequestId.current += 1;
     setProducts([]);
     setPage(1);
     setTotal(0);
+    setError(null);
     setSearch(nextSearch);
   };
 
   const loadMore = async () => {
-    if (isLoading || isRefreshing || isLoadingMore || products.length >= total) {
+    if (
+      isLoading ||
+      isRefreshing ||
+      isLoadingMoreRef.current ||
+      products.length >= total
+    ) {
       return;
     }
+    isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
-    await loadPage(page + 1);
-    setIsLoadingMore(false);
+    try {
+      await loadPage(page + 1);
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
   };
 
   if (isLoading) {
