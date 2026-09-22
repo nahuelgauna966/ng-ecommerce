@@ -8,7 +8,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import { getErrorMessage, productsApi, type Product } from '../services/api';
 import { useCartStore } from '../store/cartStore';
 import { colors } from '../theme';
+import RemoteProductImage from '../components/RemoteProductImage';
 
 type AuthStackParamList = {
   ProductDetail: { id: number };
@@ -131,13 +131,11 @@ export default function ProductDetailScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {product.imageUrl ? (
-        <Image source={{ uri: product.imageUrl }} style={styles.image} />
-      ) : (
-        <View style={styles.imagePlaceholder}>
-          <Text style={styles.placeholderText}>Sin imagen</Text>
-        </View>
-      )}
+      <RemoteProductImage
+        accessibilityLabel={`Imagen de ${product.name}`}
+        containerStyle={styles.image}
+        uri={product.imageUrl}
+      />
 
       <View style={styles.content}>
         <Text style={styles.category}>{product.category?.name ?? 'Sin categoría'}</Text>

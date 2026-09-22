@@ -2,7 +2,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   FlatList,
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import type { CartItem } from '../store/cartStore';
 import { useCartStore } from '../store/cartStore';
 import { colors } from '../theme';
 import UiIcon from '../components/UiIcon';
+import RemoteProductImage from '../components/RemoteProductImage';
 
 type CustomerStackParamList = {
   Catalog: undefined;
@@ -95,13 +95,11 @@ function CartItemRow({
 
   return (
     <View style={styles.item}>
-      {item.imageUrl ? (
-        <Image source={{ uri: item.imageUrl }} style={styles.image} />
-      ) : (
-        <View style={styles.imagePlaceholder}>
-          <Text style={styles.placeholderText}>Sin imagen</Text>
-        </View>
-      )}
+      <RemoteProductImage
+        accessibilityLabel={`Imagen de ${item.name}`}
+        containerStyle={styles.image}
+        uri={item.imageUrl}
+      />
       <View style={styles.itemContent}>
         <Text numberOfLines={2} style={styles.name}>
           {item.name}
