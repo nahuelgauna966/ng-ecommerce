@@ -2,6 +2,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { colors } from '../theme';
+
 type CustomerStackParamList = {
   Catalog: undefined;
   OrderDetail: { id: number };
@@ -64,44 +66,45 @@ export default function PaymentSuccessScreen({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    backgroundColor: colors.background,
     flex: 1,
     justifyContent: 'center',
     padding: 24,
   },
   checkCircle: {
     alignItems: 'center',
-    backgroundColor: '#16a34a',
+    backgroundColor: colors.success,
     borderRadius: 48,
     height: 96,
     justifyContent: 'center',
     width: 96,
   },
   check: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 58,
     fontWeight: '700',
     lineHeight: 66,
   },
   title: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 24,
     fontWeight: '700',
     marginTop: 28,
     textAlign: 'center',
   },
   orderNumber: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     fontSize: 16,
     marginTop: 16,
   },
   total: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 28,
     fontWeight: '700',
     marginTop: 8,
   },
   delivery: {
-    color: '#6b7280',
+    color: colors.textSecondary,
     lineHeight: 21,
     marginTop: 20,
     textAlign: 'center',
@@ -109,27 +112,27 @@ const styles = StyleSheet.create({
   primaryButton: {
     alignItems: 'center',
     alignSelf: 'stretch',
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.interactive,
     borderRadius: 8,
     marginTop: 32,
     padding: 16,
   },
   primaryButtonText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 16,
     fontWeight: '700',
   },
   secondaryButton: {
     alignItems: 'center',
     alignSelf: 'stretch',
-    borderColor: '#2563eb',
+    borderColor: colors.info,
     borderRadius: 8,
     borderWidth: 1,
     marginTop: 12,
     padding: 15,
   },
   secondaryButtonText: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 16,
     fontWeight: '700',
   },

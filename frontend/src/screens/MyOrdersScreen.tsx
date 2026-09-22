@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { getErrorMessage, ordersApi, type Order } from '../services/api';
+import { colors } from '../theme';
 
 type CustomerStackParamList = {
   MyOrders: undefined;
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   emptyText: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -154,13 +155,13 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   retryButtonText: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 16,
     fontWeight: '700',
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#e5e7eb',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 12,
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   orderNumber: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -185,42 +186,42 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   statusText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 12,
     fontWeight: '700',
   },
   date: {
-    color: '#6b7280',
+    color: colors.textSecondary,
     marginTop: 12,
   },
   total: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 19,
     fontWeight: '700',
     marginTop: 8,
   },
   pending: {
-    backgroundColor: '#6b7280',
+    backgroundColor: colors.disabled,
   },
 });
 
 const statusStyles = StyleSheet.create({
   cancelled: {
-    backgroundColor: '#dc2626',
+    backgroundColor: colors.error,
   },
   confirmed: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.info,
   },
   delivered: {
-    backgroundColor: '#15803d',
+    backgroundColor: colors.success,
   },
   pending: {
-    backgroundColor: '#6b7280',
+    backgroundColor: colors.disabled,
   },
   processing: {
-    backgroundColor: '#ea580c',
+    backgroundColor: colors.warning,
   },
   shipped: {
-    backgroundColor: '#ca8a04',
+    backgroundColor: colors.warning,
   },
 });

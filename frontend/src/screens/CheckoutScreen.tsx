@@ -13,6 +13,7 @@ import {
 
 import { getErrorMessage, ordersApi, paymentsApi } from '../services/api';
 import { useCartStore } from '../store/cartStore';
+import { colors } from '../theme';
 
 type CustomerStackParamList = {
   Cart: undefined;
@@ -159,7 +160,7 @@ export default function CheckoutScreen() {
         ]}
       >
         {isSubmitting ? (
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.interactiveText} />
         ) : (
           <Text style={styles.confirmButtonText}>Confirmar y pagar</Text>
         )}
@@ -170,16 +171,17 @@ export default function CheckoutScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.background,
     padding: 20,
   },
   title: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 24,
     fontWeight: '700',
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#e5e7eb',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     marginTop: 16,
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
   },
   itemRow: {
     alignItems: 'center',
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     paddingVertical: 12,
@@ -197,34 +199,34 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   itemName: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
   itemQuantity: {
-    color: '#6b7280',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   itemPrice: {
-    color: '#111827',
+    color: colors.text,
     fontWeight: '700',
   },
   sectionTitle: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 18,
     fontWeight: '700',
     marginTop: 28,
   },
   addressCard: {
-    backgroundColor: '#f9fafb',
-    borderColor: '#e5e7eb',
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
     marginTop: 10,
     padding: 14,
   },
   addressText: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     lineHeight: 21,
   },
   totalRow: {
@@ -234,24 +236,24 @@ const styles = StyleSheet.create({
     marginTop: 28,
   },
   totalLabel: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 20,
     fontWeight: '700',
   },
   totalPrice: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 24,
     fontWeight: '700',
   },
   error: {
-    color: '#b91c1c',
+    color: colors.error,
     fontSize: 15,
     marginTop: 20,
     textAlign: 'center',
   },
   confirmButton: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.interactive,
     borderRadius: 8,
     marginTop: 24,
     padding: 16,
@@ -260,7 +262,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   confirmButtonText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -271,19 +273,19 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   emptyText: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
   },
   backButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.interactive,
     borderRadius: 8,
     marginTop: 20,
     paddingHorizontal: 18,
     paddingVertical: 12,
   },
   backButtonText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 16,
     fontWeight: '700',
   },

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { paymentsApi } from '../services/api';
+import { colors } from '../theme';
 
 type CustomerStackParamList = {
   MyOrders: undefined;
@@ -80,7 +81,7 @@ export default function PaymentErrorScreen({
         style={({ pressed }) => [styles.primaryButton, (pressed || isRetrying) && styles.disabled]}
       >
         {isRetrying ? (
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.interactiveText} />
         ) : (
           <Text style={styles.primaryButtonText}>Reintentar pago</Text>
         )}
@@ -117,15 +118,15 @@ function getFriendlyMessage(message: string): string {
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', flex: 1, justifyContent: 'center', padding: 24 },
-  errorCircle: { alignItems: 'center', backgroundColor: '#dc2626', borderRadius: 48, height: 96, justifyContent: 'center', width: 96 },
-  errorIcon: { color: '#ffffff', fontSize: 58, fontWeight: '700', lineHeight: 66 },
-  title: { color: '#111827', fontSize: 24, fontWeight: '700', marginTop: 28, textAlign: 'center' },
-  message: { color: '#4b5563', fontSize: 16, lineHeight: 23, marginTop: 16, textAlign: 'center' },
-  pending: { color: '#6b7280', marginTop: 12, textAlign: 'center' },
-  primaryButton: { alignItems: 'center', alignSelf: 'stretch', backgroundColor: '#2563eb', borderRadius: 8, marginTop: 32, padding: 16 },
-  primaryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  secondaryButton: { alignItems: 'center', alignSelf: 'stretch', borderColor: '#2563eb', borderRadius: 8, borderWidth: 1, marginTop: 12, padding: 15 },
-  secondaryButtonText: { color: '#2563eb', fontSize: 16, fontWeight: '700' },
+  container: { alignItems: 'center', backgroundColor: colors.background, flex: 1, justifyContent: 'center', padding: 24 },
+  errorCircle: { alignItems: 'center', backgroundColor: colors.error, borderRadius: 48, height: 96, justifyContent: 'center', width: 96 },
+  errorIcon: { color: colors.interactiveText, fontSize: 58, fontWeight: '700', lineHeight: 66 },
+  title: { color: colors.text, fontSize: 24, fontWeight: '700', marginTop: 28, textAlign: 'center' },
+  message: { color: colors.textSecondary, fontSize: 16, lineHeight: 23, marginTop: 16, textAlign: 'center' },
+  pending: { color: colors.textSecondary, marginTop: 12, textAlign: 'center' },
+  primaryButton: { alignItems: 'center', alignSelf: 'stretch', backgroundColor: colors.interactive, borderRadius: 8, marginTop: 32, padding: 16 },
+  primaryButtonText: { color: colors.interactiveText, fontSize: 16, fontWeight: '700' },
+  secondaryButton: { alignItems: 'center', alignSelf: 'stretch', borderColor: colors.info, borderRadius: 8, borderWidth: 1, marginTop: 12, padding: 15 },
+  secondaryButtonText: { color: colors.info, fontSize: 16, fontWeight: '700' },
   disabled: { opacity: 0.6 },
 });

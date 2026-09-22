@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage, usersApi } from '../services/api';
+import { colors } from '../theme';
 
 type CustomerStackParamList = { EditProfile: undefined; Profile: undefined };
 type EditProfileScreenProps = NativeStackScreenProps<CustomerStackParamList, 'EditProfile'>;
@@ -84,7 +85,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       {submitError && <Text style={styles.error}>{submitError}</Text>}
       {success && <Text style={styles.success}>{success}</Text>}
       <Pressable disabled={isSubmitting} onPress={handleSubmit(onSubmit)} style={({ pressed }) => [styles.button, (pressed || isSubmitting) && styles.disabled]}>
-        {isSubmitting ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.buttonText}>Guardar cambios</Text>}
+        {isSubmitting ? <ActivityIndicator color={colors.interactiveText} /> : <Text style={styles.buttonText}>Guardar cambios</Text>}
       </Pressable>
       <Pressable onPress={() => navigation.goBack()} style={styles.cancelButton}><Text style={styles.cancelText}>Cancelar</Text></Pressable>
     </ScrollView>
@@ -96,5 +97,5 @@ function Field({ control, error, label, name, ...inputProps }: { control: Return
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24 }, centered: { alignItems: 'center', flex: 1, justifyContent: 'center' }, field: { marginBottom: 16 }, label: { color: '#111827', fontSize: 15, fontWeight: '600', marginBottom: 6 }, input: { borderColor: '#9ca3af', borderRadius: 8, borderWidth: 1, fontSize: 16, padding: 12 }, error: { color: '#dc2626', marginTop: 5 }, success: { color: '#15803d', marginBottom: 16 }, button: { alignItems: 'center', backgroundColor: '#2563eb', borderRadius: 8, marginTop: 8, padding: 15 }, buttonText: { color: '#ffffff', fontSize: 16, fontWeight: '700' }, cancelButton: { alignItems: 'center', marginTop: 16, padding: 12 }, cancelText: { color: '#2563eb', fontWeight: '700' }, disabled: { opacity: 0.6 },
+  container: { backgroundColor: colors.background, padding: 24 }, centered: { alignItems: 'center', flex: 1, justifyContent: 'center' }, field: { marginBottom: 16 }, label: { color: colors.text, fontSize: 15, fontWeight: '600', marginBottom: 6 }, input: { borderColor: colors.border, borderRadius: 8, borderWidth: 1, color: colors.text, fontSize: 16, padding: 12 }, error: { color: colors.error, marginTop: 5 }, success: { color: colors.success, marginBottom: 16 }, button: { alignItems: 'center', backgroundColor: colors.interactive, borderRadius: 8, marginTop: 8, padding: 15 }, buttonText: { color: colors.interactiveText, fontSize: 16, fontWeight: '700' }, cancelButton: { alignItems: 'center', marginTop: 16, padding: 12 }, cancelText: { color: colors.info, fontWeight: '700' }, disabled: { opacity: 0.6 },
 });

@@ -180,5 +180,5 @@ const styles = StyleSheet.create({
   loadingContainer: { alignItems: 'center', backgroundColor: colors.background, flex: 1, justifyContent: 'center', padding: 24 },
   loadingText: { color: colors.text, fontSize: 20, fontWeight: '600', marginTop: 12 },
   headerLogout: { padding: 8 },
-  headerLogoutText: { color: '#dc2626', fontSize: 15, fontWeight: '600' },
+  headerLogoutText: { color: colors.error, fontSize: 15, fontWeight: '600' },
 });

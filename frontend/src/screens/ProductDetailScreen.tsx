@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage, productsApi, type Product } from '../services/api';
 import { useCartStore } from '../store/cartStore';
+import { colors } from '../theme';
 
 type AuthStackParamList = {
   ProductDetail: { id: number };
@@ -206,11 +207,13 @@ export default function ProductDetailScreen() {
 const styles = StyleSheet.create({
   centered: {
     alignItems: 'center',
+    backgroundColor: colors.background,
     flex: 1,
     justifyContent: 'center',
     padding: 24,
   },
   container: {
+    backgroundColor: colors.background,
     paddingBottom: 32,
   },
   image: {
@@ -219,47 +222,47 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     alignItems: 'center',
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.surfaceMuted,
     height: 300,
     justifyContent: 'center',
   },
   placeholderText: {
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
   content: {
     padding: 20,
   },
   category: {
-    color: '#6b7280',
+    color: colors.textSecondary,
     fontSize: 15,
     fontWeight: '600',
   },
   name: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 28,
     fontWeight: '700',
     marginTop: 6,
   },
   price: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 24,
     fontWeight: '700',
     marginTop: 12,
   },
   sectionTitle: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 18,
     fontWeight: '700',
     marginTop: 28,
   },
   description: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     fontSize: 16,
     lineHeight: 24,
     marginTop: 8,
   },
   stock: {
-    color: '#15803d',
+    color: colors.success,
     fontSize: 16,
     fontWeight: '700',
     marginTop: 24,
@@ -271,7 +274,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   quantityLabel: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
   },
   quantityButton: {
     alignItems: 'center',
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.surfaceMuted,
     borderRadius: 20,
     height: 40,
     justifyContent: 'center',
@@ -291,7 +294,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   quantityButtonText: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 24,
     fontWeight: '600',
   },
@@ -303,28 +306,28 @@ const styles = StyleSheet.create({
   },
   addButton: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.interactive,
     borderRadius: 8,
     marginTop: 32,
     padding: 16,
   },
   buttonDisabled: {
-    backgroundColor: '#9ca3af',
+    backgroundColor: colors.disabled,
   },
   addButtonText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 16,
     fontWeight: '700',
   },
   feedback: {
-    color: '#15803d',
+    color: colors.success,
     fontSize: 15,
     fontWeight: '600',
     marginTop: 24,
     textAlign: 'center',
   },
   errorText: {
-    color: '#b91c1c',
+    color: colors.error,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -333,7 +336,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   retryButtonText: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 16,
     fontWeight: '700',
   },
