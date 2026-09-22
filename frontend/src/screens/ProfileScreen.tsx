@@ -14,6 +14,7 @@ import {
 
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage, ordersApi, usersApi, type UserProfile } from '../services/api';
+import { colors } from '../theme';
 
 type CustomerStackParamList = {
   EditProfile: undefined;
@@ -140,65 +141,67 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
+    backgroundColor: colors.background,
     padding: 24,
   },
   centered: {
     alignItems: 'center',
+    backgroundColor: colors.background,
     flex: 1,
     justifyContent: 'center',
     padding: 24,
   },
   avatar: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.info,
     borderRadius: 48,
     height: 96,
     justifyContent: 'center',
     width: 96,
   },
   avatarText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 40,
     fontWeight: '700',
   },
   name: {
-    color: '#111827',
+    color: colors.text,
     fontSize: 24,
     fontWeight: '700',
     marginTop: 16,
   },
   email: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     fontSize: 16,
     marginTop: 8,
   },
   infoCard: {
     alignSelf: 'stretch',
-    backgroundColor: '#ffffff',
-    borderColor: '#e5e7eb',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     marginTop: 28,
   },
   infoRow: {
     alignItems: 'center',
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 16,
   },
   infoLabel: {
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
   infoValue: {
-    color: '#111827',
+    color: colors.text,
     fontWeight: '600',
   },
   ordersButton: {
     alignItems: 'center',
     alignSelf: 'stretch',
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.interactive,
     borderRadius: 8,
     marginTop: 32,
     padding: 14,
@@ -207,14 +210,14 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   ordersButtonText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 16,
     fontWeight: '700',
   },
   logoutButton: {
     alignItems: 'center',
     alignSelf: 'stretch',
-    borderColor: '#dc2626',
+    borderColor: colors.error,
     borderRadius: 8,
     borderWidth: 1,
     marginTop: 12,
@@ -223,24 +226,24 @@ const styles = StyleSheet.create({
   editButton: {
     alignItems: 'center',
     alignSelf: 'stretch',
-    borderColor: '#2563eb',
+    borderColor: colors.info,
     borderRadius: 8,
     borderWidth: 1,
     marginTop: 12,
     padding: 14,
   },
   editButtonText: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 16,
     fontWeight: '700',
   },
   logoutButtonText: {
-    color: '#dc2626',
+    color: colors.error,
     fontSize: 16,
     fontWeight: '700',
   },
   error: {
-    color: '#b91c1c',
+    color: colors.error,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -249,7 +252,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   retryButtonText: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 16,
     fontWeight: '700',
   },

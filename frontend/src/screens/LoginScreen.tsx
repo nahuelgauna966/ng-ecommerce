@@ -14,6 +14,7 @@ import { z } from 'zod';
 
 import { useAuth } from '../context/AuthContext';
 import { authApi, getErrorMessage } from '../services/api';
+import { colors } from '../theme';
 
 type AuthStackParamList = {
   Home: undefined;
@@ -117,7 +118,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         ]}
       >
         {isSubmitting ? (
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color={colors.interactiveText} />
         ) : (
           <Text style={styles.buttonText}>Ingresar</Text>
         )}
@@ -132,16 +133,18 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.background,
     flex: 1,
     justifyContent: 'center',
     padding: 24,
   },
   title: {
+    color: colors.text,
     fontSize: 28,
     fontWeight: '700',
   },
   subtitle: {
-    color: '#4b5563',
+    color: colors.textSecondary,
     fontSize: 16,
     marginBottom: 28,
     marginTop: 8,
@@ -150,28 +153,30 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
+    color: colors.text,
     fontSize: 15,
     fontWeight: '600',
     marginBottom: 6,
   },
   input: {
-    borderColor: '#9ca3af',
+    borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
+    color: colors.text,
     fontSize: 16,
     padding: 12,
   },
   error: {
-    color: '#dc2626',
+    color: colors.error,
     marginTop: 4,
   },
   submitError: {
-    color: '#dc2626',
+    color: colors.error,
     marginBottom: 16,
   },
   button: {
     alignItems: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.interactive,
     borderRadius: 8,
     marginBottom: 20,
     padding: 14,
@@ -180,12 +185,12 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#ffffff',
+    color: colors.interactiveText,
     fontSize: 16,
     fontWeight: '700',
   },
   link: {
-    color: '#2563eb',
+    color: colors.info,
     fontSize: 15,
     textAlign: 'center',
   },
