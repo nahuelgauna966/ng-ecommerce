@@ -6,6 +6,18 @@ export const colors = {
   text: '#F5F5F5',
   textSecondary: '#B8B8B8',
   inverseText: '#121212',
+  interactive: '#F5F5F5',
+  interactiveText: '#121212',
+  disabled: '#4A4A4A',
+  disabledText: '#929292',
+  success: '#4ADE80',
+  successSurface: '#143522',
+  error: '#F87171',
+  errorSurface: '#3A171A',
+  warning: '#FBBF24',
+  warningSurface: '#3B2A08',
+  info: '#60A5FA',
+  infoSurface: '#152B4A',
   overlay: 'rgba(0, 0, 0, 0.66)',
 } as const;
 
