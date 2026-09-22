@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { colors } from '../theme';
 
@@ -9,6 +9,7 @@ export type IconName =
   | 'search'
   | 'user'
   | 'cart'
+  | 'arrowLeft'
   | 'arrowRight'
   | 'products'
   | 'help'
@@ -19,21 +20,22 @@ export type IconName =
   | 'storage'
   | 'support';
 
-const symbols: Record<IconName, string> = {
-  menu: '☰',
-  close: '×',
-  search: '',
-  user: '',
-  cart: '',
-  arrowRight: '›',
-  products: '▦',
-  help: '?',
-  desktop: '▣',
-  cpu: '▧',
-  gpu: '▤',
-  ram: '▥',
-  storage: '◫',
-  support: '▱',
+const icons: Record<IconName, keyof typeof Ionicons.glyphMap> = {
+  menu: 'menu-outline',
+  close: 'close-outline',
+  search: 'search-outline',
+  user: 'person-outline',
+  cart: 'cart-outline',
+  arrowLeft: 'chevron-back-outline',
+  arrowRight: 'chevron-forward-outline',
+  products: 'cube-outline',
+  help: 'help-circle-outline',
+  desktop: 'desktop-outline',
+  cpu: 'hardware-chip-outline',
+  gpu: 'desktop-outline',
+  ram: 'server-outline',
+  storage: 'save-outline',
+  support: 'headset-outline',
 };
 
 export default function UiIcon({
@@ -45,35 +47,14 @@ export default function UiIcon({
   color?: string;
   size?: number;
 }) {
-  const ioniconName =
-    name === 'search'
-      ? 'search-outline'
-      : name === 'user'
-        ? 'person-outline'
-        : name === 'cart'
-          ? 'cart-outline'
-          : null;
-
-  if (ioniconName) {
-    return (
-      <View style={[styles.iconBox, { height: size, width: size }]}>
-        <Ionicons color={color} name={ioniconName} size={size} />
-      </View>
-    );
-  }
-
   return (
-    <Text allowFontScaling={false} style={[styles.icon, { color, fontSize: size, lineHeight: size + 3 }]}>
-      {symbols[name]}
-    </Text>
+    <View style={[styles.iconBox, { height: size, width: size }]}>
+      <Ionicons color={color} name={icons[name]} size={size} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  icon: {
-    fontWeight: '400',
-    textAlign: 'center',
-  },
   iconBox: {
     alignItems: 'center',
     justifyContent: 'center',

@@ -12,6 +12,7 @@ import {
 import type { CartItem } from '../store/cartStore';
 import { useCartStore } from '../store/cartStore';
 import { colors } from '../theme';
+import UiIcon from '../components/UiIcon';
 
 type CustomerStackParamList = {
   Catalog: undefined;
@@ -36,7 +37,7 @@ export default function CartScreen() {
   if (items.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIllustration}>🛒</Text>
+        <UiIcon name="cart" size={56} />
         <Text style={styles.emptyTitle}>Tu carrito está vacío</Text>
         <Text style={styles.emptyText}>
           Agregá productos para continuar con tu compra.
@@ -269,9 +270,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 24,
-  },
-  emptyIllustration: {
-    fontSize: 56,
   },
   emptyTitle: {
     color: colors.text,

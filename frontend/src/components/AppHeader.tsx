@@ -27,7 +27,7 @@ export default function AppHeader({ navigation, showBack = false }: AppHeaderPro
       <View style={styles.header}>
         {showBack ? (
           <Pressable accessibilityLabel="Volver" hitSlop={8} onPress={() => navigation.goBack()} style={styles.iconButton}>
-            <Text style={styles.back}>‹</Text>
+            <UiIcon name="arrowLeft" size={25} />
           </Pressable>
         ) : (
           <Pressable accessibilityLabel="Abrir menú" hitSlop={8} onPress={() => setIsMenuOpen(true)} style={styles.iconButton}>
@@ -74,5 +74,4 @@ const styles = StyleSheet.create({
   actions: { alignItems: 'center', flexDirection: 'row', marginLeft: 'auto' },
   badge: { alignItems: 'center', backgroundColor: colors.text, borderColor: colors.background, borderRadius: 9, borderWidth: 1, justifyContent: 'center', minWidth: 17, paddingHorizontal: 3, position: 'absolute', right: 0, top: 1 },
   badgeText: { color: colors.inverseText, fontSize: 9, fontWeight: '800' },
-  back: { color: colors.text, fontSize: 36, lineHeight: 37 },
 });
