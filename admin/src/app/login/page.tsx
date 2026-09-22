@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -28,24 +29,23 @@ function getErrorMessage(error: unknown): string {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const [credentials, setCredentials] = useState<LoginPayload>({
     email: "",
     password: "",
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage(null);
-    setSuccessMessage(null);
     setIsSubmitting(true);
 
     try {
       const { data } = await api.post<AuthResponse>("/auth/login", credentials);
       setAuthToken(data.access_token);
-      setSuccessMessage("Sesión iniciada correctamente.");
+      router.replace("/");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -107,12 +107,6 @@ export default function LoginPage() {
               {errorMessage}
             </p>
           ) : null}
-          {successMessage ? (
-            <p aria-live="polite" className="text-sm text-emerald-600">
-              {successMessage}
-            </p>
-          ) : null}
-
           <Button className="w-full" disabled={isSubmitting} type="submit">
             {isSubmitting ? "Ingresando..." : "Ingresar"}
           </Button>
