@@ -1,4 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import type { Product } from '../services/api';
 import { useCartStore } from '../store/cartStore';
@@ -11,10 +17,12 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onPress }: ProductCardProps) {
+  const { width } = useWindowDimensions();
   const quantity = useCartStore(
     (state) =>
       state.items.find((item) => item.productId === product.id)?.quantity ?? 0,
   );
+  const imageHeight = Math.min(Math.max((width - 32) * 0.56, 160), 240);
 
   return (
     <Pressable
@@ -24,7 +32,7 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
     >
       <RemoteProductImage
         accessibilityLabel={`Imagen de ${product.name}`}
-        containerStyle={styles.image}
+        containerStyle={[styles.image, { height: imageHeight }]}
         uri={product.imageUrl}
       />
       {quantity > 0 && (
@@ -57,14 +65,7 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   image: {
-    height: 160,
     width: '100%',
-  },
-  imagePlaceholder: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    height: 160,
-    justifyContent: 'center',
   },
   cartBadge: {
     backgroundColor: colors.text,
@@ -79,9 +80,6 @@ const styles = StyleSheet.create({
     color: colors.inverseText,
     fontSize: 12,
     fontWeight: '700',
-  },
-  placeholderText: {
-    color: colors.textSecondary,
   },
   content: {
     padding: 14,

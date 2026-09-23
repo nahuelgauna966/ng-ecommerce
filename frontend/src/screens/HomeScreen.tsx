@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 
@@ -31,11 +32,13 @@ type HomeStackParamList = {
 type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
+  const { width } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredProduct, setFeaturedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const bannerHeight = Math.min(Math.max((width - spacing.lg * 2) * 0.62, 220), 360);
 
   const loadHome = useCallback(async () => {
     try {
@@ -82,7 +85,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       <Pressable
         accessibilityRole="button"
         onPress={() => navigation.navigate('Catalog')}
-        style={({ pressed }) => [styles.banner, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.banner, { height: bannerHeight }, pressed && styles.pressed]}
       >
         <RemoteProductImage
           accessibilityLabel={`Imagen destacada de ${featuredProduct?.name ?? 'hardware'}`}
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
   sectionHeader: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.lg, marginTop: spacing.xl },
   sectionTitle: { color: colors.text, fontSize: 10, fontWeight: '700', letterSpacing: 3, textTransform: 'uppercase' },
   sectionLine: { backgroundColor: colors.border, flex: 1, height: StyleSheet.hairlineWidth },
-  banner: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.md, borderWidth: 1, height: 245, marginHorizontal: spacing.lg, marginTop: spacing.md, overflow: 'hidden', position: 'relative' },
+  banner: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.md, borderWidth: 1, marginHorizontal: spacing.lg, marginTop: spacing.md, overflow: 'hidden', position: 'relative' },
   bannerImage: { height: '100%', opacity: 0.72, position: 'absolute', resizeMode: 'cover', width: '100%' },
   bannerShade: { backgroundColor: 'rgba(0, 0, 0, 0.32)', bottom: 0, left: 0, position: 'absolute', right: 0, top: 0 },
   bannerContent: { padding: spacing.lg },

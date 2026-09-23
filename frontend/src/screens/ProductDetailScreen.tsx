@@ -12,6 +12,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 
@@ -34,6 +35,7 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
 });
 
 export default function ProductDetailScreen() {
+  const { width } = useWindowDimensions();
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { params } = useRoute<ProductDetailRoute>();
@@ -47,6 +49,7 @@ export default function ProductDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const imageHeight = Math.min(Math.max(width * 0.75, 260), 480);
 
   const loadProduct = useCallback(async () => {
     setIsLoading(true);
@@ -133,7 +136,7 @@ export default function ProductDetailScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <RemoteProductImage
         accessibilityLabel={`Imagen de ${product.name}`}
-        containerStyle={styles.image}
+        containerStyle={[styles.image, { height: imageHeight }]}
         uri={product.imageUrl}
       />
 
@@ -215,17 +218,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   image: {
-    height: 300,
     width: '100%',
-  },
-  imagePlaceholder: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    height: 300,
-    justifyContent: 'center',
-  },
-  placeholderText: {
-    color: colors.textSecondary,
   },
   content: {
     padding: 20,
