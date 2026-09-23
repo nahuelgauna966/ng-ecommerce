@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,15 +13,12 @@ import {
 } from 'react-native';
 
 import CategoryCard from '../components/CategoryCard';
-import RemoteProductImage from '../components/RemoteProductImage';
 import UiIcon from '../components/UiIcon';
 import { useIsMounted } from '../hooks/useIsMounted';
 import {
   categoriesApi,
   getErrorMessage,
-  productsApi,
   type Category,
-  type Product,
 } from '../services/api';
 import { colors, radii, spacing } from '../theme';
 
@@ -36,7 +34,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { width } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
-  const [featuredProduct, setFeaturedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMounted = useIsMounted();
@@ -45,15 +42,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const loadHome = useCallback(async () => {
     try {
       setError(null);
-      const [categoriesResponse, productsResponse] = await Promise.all([
-        categoriesApi.getAll(),
-        productsApi.getAll(1, 1),
-      ]);
+      const categoriesResponse = await categoriesApi.getAll();
       if (!isMounted.current) {
         return;
       }
       setCategories(categoriesResponse.data);
-      setFeaturedProduct(productsResponse.data.data[0] ?? null);
     } catch (requestError) {
       if (!isMounted.current) {
         return;
@@ -97,10 +90,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         onPress={() => navigation.navigate('Catalog')}
         style={({ pressed }) => [styles.banner, { height: bannerHeight }, pressed && styles.pressed]}
       >
-        <RemoteProductImage
-          accessibilityLabel={`Imagen destacada de ${featuredProduct?.name ?? 'hardware'}`}
-          containerStyle={styles.bannerImage}
-          uri={featuredProduct?.imageUrl}
+        <Image
+          accessibilityLabel="Potenciá tu PC"
+          source={require('../../assets/banner-pc.png')}
+          style={styles.bannerImage}
         />
         <View style={styles.bannerShade} />
         <View style={styles.bannerContent}>
