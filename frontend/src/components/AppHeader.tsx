@@ -1,6 +1,7 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../context/AuthContext';
 import { useCartStore } from '../store/cartStore';
@@ -13,10 +14,13 @@ interface AppHeaderProps {
   showBack?: boolean;
 }
 
+const HEADER_CONTENT_HEIGHT = 58;
+
 export default function AppHeader({ navigation, showBack = false }: AppHeaderProps) {
   const { user } = useAuth();
   const totalItems = useCartStore((state) => state.totalItems());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const openCatalogSearch = () => {
     navigation.navigate('Catalog', { focusSearch: true });
@@ -24,7 +28,7 @@ export default function AppHeader({ navigation, showBack = false }: AppHeaderPro
 
   return (
     <>
-      <View style={styles.header}>
+      <View style={[styles.header, { height: HEADER_CONTENT_HEIGHT + insets.top, paddingTop: insets.top }]}>
         <Pressable accessibilityLabel="Abrir menú" hitSlop={8} onPress={() => setIsMenuOpen(true)} style={styles.iconButton}>
           <UiIcon name="menu" size={25} />
         </Pressable>
@@ -66,7 +70,7 @@ export default function AppHeader({ navigation, showBack = false }: AppHeaderPro
 }
 
 const styles = StyleSheet.create({
-  header: { alignItems: 'center', backgroundColor: colors.background, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', height: 58, paddingHorizontal: spacing.sm },
+  header: { alignItems: 'center', backgroundColor: colors.background, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', paddingHorizontal: spacing.sm },
   iconButton: { alignItems: 'center', justifyContent: 'center', minHeight: 40, minWidth: 38, padding: spacing.xs, position: 'relative' },
   logoButton: { marginLeft: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   logo: { color: colors.text, fontSize: 27, fontStyle: 'italic', fontWeight: '900', letterSpacing: -2 },
