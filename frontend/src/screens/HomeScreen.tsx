@@ -37,7 +37,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMounted = useIsMounted();
-  const bannerHeight = Math.min(Math.max((width - spacing.lg * 2) * 0.62, 220), 360);
+  const bannerHeight = Math.min(Math.max((width - spacing.lg * 2) * 0.68, 230), 360);
 
   const loadHome = useCallback(async () => {
     try {
@@ -102,7 +102,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
         <View style={styles.bannerButton}>
           <Text style={styles.bannerButtonText}>Explorar componentes</Text>
-          <UiIcon color={colors.inverseText} name="arrowRight" size={28} />
+          <UiIcon color={colors.inverseText} name="arrowRight" size={22} />
         </View>
       </Pressable>
 
@@ -164,13 +164,13 @@ const styles = StyleSheet.create({
   sectionTitle: { color: colors.text, fontSize: 10, fontWeight: '700', letterSpacing: 3, textTransform: 'uppercase' },
   sectionLine: { backgroundColor: colors.border, flex: 1, height: StyleSheet.hairlineWidth },
   banner: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.md, borderWidth: 1, marginHorizontal: spacing.lg, marginTop: spacing.md, overflow: 'hidden', position: 'relative' },
-  bannerImage: { height: '100%', opacity: 0.72, position: 'absolute', resizeMode: 'cover', width: '100%' },
-  bannerShade: { backgroundColor: 'rgba(0, 0, 0, 0.32)', bottom: 0, left: 0, position: 'absolute', right: 0, top: 0 },
-  bannerContent: { padding: spacing.lg },
-  bannerTitle: { color: colors.text, fontSize: 29, fontWeight: '800', letterSpacing: -0.6 },
-  bannerDescription: { color: colors.text, fontSize: 15, lineHeight: 19, marginTop: spacing.xs, maxWidth: 180 },
-  bannerButton: { alignItems: 'center', backgroundColor: colors.text, borderRadius: radii.sm, bottom: spacing.sm, flexDirection: 'row', justifyContent: 'space-between', left: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: 10, position: 'absolute', right: spacing.sm },
-  bannerButtonText: { color: colors.inverseText, fontSize: 14, fontWeight: '700' },
+  bannerImage: { height: '100%', opacity: 0.86, position: 'absolute', resizeMode: 'cover', width: '100%' },
+  bannerShade: { backgroundColor: 'rgba(0, 0, 0, 0.2)', bottom: 0, left: 0, position: 'absolute', right: 0, top: 0 },
+  bannerContent: { padding: spacing.md },
+  bannerTitle: { color: colors.text, fontSize: 27, fontWeight: '800', letterSpacing: -0.6 },
+  bannerDescription: { color: colors.text, fontSize: 14, lineHeight: 18, marginTop: spacing.xs, maxWidth: 165 },
+  bannerButton: { alignItems: 'center', backgroundColor: colors.text, borderRadius: radii.sm, bottom: spacing.sm, flexDirection: 'row', justifyContent: 'space-between', left: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, position: 'absolute', right: spacing.sm },
+  bannerButtonText: { color: colors.inverseText, fontSize: 13, fontWeight: '700' },
   pressed: { opacity: 0.8 },
   categories: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingRight: spacing.xl },
   categoriesState: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
