@@ -17,6 +17,7 @@ import {
 } from '../services/api';
 import { colors } from '../theme';
 import RemoteProductImage from '../components/RemoteProductImage';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 type CustomerStackParamList = {
   MyOrders: undefined;
@@ -67,20 +68,31 @@ export default function OrderDetailScreen({
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useIsMounted();
 
   const loadOrder = useCallback(async () => {
     try {
       setError(null);
       const response = await ordersApi.getById(route.params.id);
+      if (!isMounted.current) {
+        return;
+      }
       setOrder(response.data);
     } catch (requestError) {
+      if (!isMounted.current) {
+        return;
+      }
       setError(getErrorMessage(requestError));
     }
-  }, [route.params.id]);
+  }, [isMounted, route.params.id]);
 
   useEffect(() => {
-    void loadOrder().finally(() => setIsLoading(false));
-  }, [loadOrder]);
+    void loadOrder().finally(() => {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    });
+  }, [isMounted, loadOrder]);
 
   if (isLoading) {
     return (

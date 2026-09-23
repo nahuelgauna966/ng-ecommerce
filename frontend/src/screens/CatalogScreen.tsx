@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import ProductCard from '../components/ProductCard';
+import { useIsMounted } from '../hooks/useIsMounted';
 import {
   categoriesApi,
   getErrorMessage,
@@ -53,6 +54,7 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
   const latestRequestId = useRef(0);
   const isLoadingMoreRef = useRef(false);
   const appliedRouteQuery = useRef<string | null>(null);
+  const isMounted = useIsMounted();
 
   const loadPage = useCallback(
     async (nextPage: number, replace = false, categoryId = selectedCategoryId, searchTerm = search) => {
@@ -62,34 +64,41 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
         setError(null);
         const response = await productsApi.getAll(nextPage, PAGE_SIZE, categoryId, searchTerm);
         const { data, total: responseTotal } = response.data;
-        if (requestId !== latestRequestId.current) {
+        if (!isMounted.current || requestId !== latestRequestId.current) {
           return;
         }
         setProducts((current) => (replace ? data : [...current, ...data]));
         setTotal(responseTotal);
         setPage(nextPage);
       } catch (requestError) {
-        if (requestId !== latestRequestId.current) {
+        if (!isMounted.current || requestId !== latestRequestId.current) {
           return;
         }
         setError(getErrorMessage(requestError));
       }
     },
-    [search, selectedCategoryId],
+    [isMounted, search, selectedCategoryId],
   );
 
   const loadCategories = useCallback(async () => {
     try {
       const response = await categoriesApi.getAll();
+      if (!isMounted.current) {
+        return;
+      }
       setCategories(response.data);
     } catch {
       // El catálogo sigue disponible aunque no pueda cargar los filtros.
     }
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
-    void loadPage(1, true).finally(() => setIsLoading(false));
-  }, [loadPage]);
+    void loadPage(1, true).finally(() => {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    });
+  }, [isMounted, loadPage]);
 
   useEffect(() => {
     const nextSearch = route.params?.search ?? '';
@@ -123,11 +132,19 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
     void loadCategories();
   }, [loadCategories]);
 
+  useEffect(() => {
+    return () => {
+      latestRequestId.current += 1;
+    };
+  }, []);
+
   const refresh = async () => {
     setIsRefreshing(true);
     await loadPage(1, true);
     await loadCategories();
-    setIsRefreshing(false);
+    if (isMounted.current) {
+      setIsRefreshing(false);
+    }
   };
 
   const selectCategory = (categoryId?: number) => {
@@ -170,7 +187,9 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
       await loadPage(page + 1);
     } finally {
       isLoadingMoreRef.current = false;
-      setIsLoadingMore(false);
+      if (isMounted.current) {
+        setIsLoadingMore(false);
+      }
     }
   };
 

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
+import { useIsMounted } from '../hooks/useIsMounted';
 import { getErrorMessage, ordersApi, usersApi, type UserProfile } from '../services/api';
 import { colors } from '../theme';
 
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useIsMounted();
 
   const loadProfile = useCallback(async () => {
     try {
@@ -39,21 +41,33 @@ export default function ProfileScreen() {
         usersApi.getMe(),
         ordersApi.getMyOrders(),
       ]);
+      if (!isMounted.current) {
+        return;
+      }
       setProfile(profileResponse.data);
       setOrderCount(ordersResponse.data.length);
     } catch (requestError) {
+      if (!isMounted.current) {
+        return;
+      }
       setError(getErrorMessage(requestError));
     }
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
-    void loadProfile().finally(() => setIsLoading(false));
-  }, [loadProfile]);
+    void loadProfile().finally(() => {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    });
+  }, [isMounted, loadProfile]);
 
   const refresh = async () => {
     setIsRefreshing(true);
     await loadProfile();
-    setIsRefreshing(false);
+    if (isMounted.current) {
+      setIsRefreshing(false);
+    }
   };
 
   const confirmLogout = () => {
