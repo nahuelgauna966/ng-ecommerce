@@ -1,4 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import type { Category } from '../services/api';
 import { colors, radii, spacing } from '../theme';
@@ -11,12 +17,15 @@ export default function CategoryCard({
   category: Category;
   onPress: () => void;
 }) {
+  const { width } = useWindowDimensions();
+  const cardSize = Math.min(Math.max(width * 0.23, 88), 120);
+
   return (
     <Pressable
       accessibilityLabel={`Ver categoría ${category.name}`}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, { height: cardSize, width: cardSize }, pressed && styles.pressed]}
     >
       <View style={styles.iconWrap}>
         <UiIcon name={getCategoryIcon(category.name)} size={30} />
@@ -36,7 +45,7 @@ function getCategoryIcon(name: string): IconName {
 }
 
 const styles = StyleSheet.create({
-  card: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.sm, borderWidth: 1, height: 92, justifyContent: 'space-between', padding: spacing.sm, width: 88 },
+  card: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.sm, borderWidth: 1, justifyContent: 'space-between', padding: spacing.sm },
   pressed: { opacity: 0.72 },
   iconWrap: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   label: { color: colors.text, fontSize: 11, lineHeight: 14, textAlign: 'center' },
