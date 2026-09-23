@@ -25,15 +25,14 @@ export default function AppHeader({ navigation, showBack = false }: AppHeaderPro
   return (
     <>
       <View style={styles.header}>
+        <Pressable accessibilityLabel="Abrir menú" hitSlop={8} onPress={() => setIsMenuOpen(true)} style={styles.iconButton}>
+          <UiIcon name="menu" size={25} />
+        </Pressable>
         {showBack ? (
           <Pressable accessibilityLabel="Volver" hitSlop={8} onPress={() => navigation.goBack()} style={styles.iconButton}>
             <UiIcon name="arrowLeft" size={25} />
           </Pressable>
-        ) : (
-          <Pressable accessibilityLabel="Abrir menú" hitSlop={8} onPress={() => setIsMenuOpen(true)} style={styles.iconButton}>
-            <UiIcon name="menu" size={25} />
-          </Pressable>
-        )}
+        ) : null}
         <Pressable accessibilityLabel="Ir al inicio" onPress={() => navigation.navigate('Home')} style={styles.logoButton}>
           <Text style={styles.logo}>NG</Text>
         </Pressable>
