@@ -2,12 +2,14 @@ import axios, { AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
 
+import { apiConfiguration } from '../config/api-config';
+
 const TOKEN_KEY = 'jwt';
 let unauthorizedHandler: (() => Promise<void>) | null = null;
 let isHandlingUnauthorized = false;
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: apiConfiguration.baseUrl,
   timeout: 10_000,
 });
 
@@ -70,7 +72,7 @@ export function getErrorMessage(error: unknown): string {
       return message;
     }
     if (error.code === AxiosError.ERR_NETWORK) {
-      return 'No se pudo conectar con el servidor. Revisá tu conexión.';
+      return 'No se pudo conectar con el servidor. Verificá que el backend esté activo y que el dispositivo esté en la misma red.';
     }
   }
   return 'Ocurrió un error inesperado. Intentá nuevamente.';
