@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   bannerButton: { alignItems: 'center', backgroundColor: colors.text, borderRadius: radii.sm, bottom: spacing.sm, flexDirection: 'row', justifyContent: 'space-between', left: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: 10, position: 'absolute', right: spacing.sm },
   bannerButtonText: { color: colors.inverseText, fontSize: 14, fontWeight: '700' },
   pressed: { opacity: 0.8 },
-  categories: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingRight: 52 },
+  categories: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingRight: spacing.xl },
   categoriesState: { marginHorizontal: spacing.lg, marginTop: spacing.lg },
   stateText: { color: colors.textSecondary, fontSize: 14, textAlign: 'center' },
   retryButton: { alignSelf: 'center', marginTop: spacing.sm, padding: spacing.sm },
