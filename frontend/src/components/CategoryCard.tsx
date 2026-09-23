@@ -36,9 +36,12 @@ export default function CategoryCard({
 }
 
 function getCategoryIcon(name: string): IconName {
-  const normalized = name.toLowerCase();
+  const normalized = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
   if (normalized.includes('proces')) return 'cpu';
-  if (normalized.includes('placa') || normalized.includes('video') || normalized.includes('gpu')) return 'gpu';
+  if (normalized.includes('placa') || normalized.includes('video') || normalized.includes('gpu') || normalized.includes('grafica') || normalized.includes('tarjeta')) return 'gpu';
   if (normalized.includes('memoria') || normalized.includes('ram')) return 'ram';
   if (normalized.includes('almacen') || normalized.includes('disco') || normalized.includes('ssd')) return 'storage';
   return 'products';
