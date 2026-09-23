@@ -18,7 +18,7 @@ export default function CategoryCard({
   onPress: () => void;
 }) {
   const { width } = useWindowDimensions();
-  const cardSize = Math.min(Math.max(width * 0.23, 88), 120);
+  const cardSize = Math.min(Math.max((width - spacing.lg * 2 - spacing.sm * 3) / 4, 76), 96);
 
   return (
     <Pressable
@@ -28,7 +28,7 @@ export default function CategoryCard({
       style={({ pressed }) => [styles.card, { height: cardSize, width: cardSize }, pressed && styles.pressed]}
     >
       <View style={styles.iconWrap}>
-        <UiIcon name={getCategoryIcon(category.name)} size={30} />
+        <UiIcon name={getCategoryIcon(category.name)} size={28} />
       </View>
       <Text numberOfLines={2} style={styles.label}>{category.name}</Text>
     </Pressable>
@@ -48,8 +48,8 @@ function getCategoryIcon(name: string): IconName {
 }
 
 const styles = StyleSheet.create({
-  card: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.sm, borderWidth: 1, justifyContent: 'space-between', padding: spacing.sm },
+  card: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radii.sm, borderWidth: 1, justifyContent: 'space-between', padding: spacing.xs },
   pressed: { opacity: 0.72 },
   iconWrap: { alignItems: 'center', flex: 1, justifyContent: 'center' },
-  label: { color: colors.text, fontSize: 11, lineHeight: 14, textAlign: 'center' },
+  label: { color: colors.text, fontSize: 10, lineHeight: 13, textAlign: 'center' },
 });
