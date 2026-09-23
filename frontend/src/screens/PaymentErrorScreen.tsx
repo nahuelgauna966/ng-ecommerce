@@ -22,6 +22,8 @@ type PaymentErrorScreenProps = NativeStackScreenProps<
   'PaymentError'
 >;
 
+const DEFAULT_PAYMENT_ERROR_MESSAGE = 'El pago no pudo procesarse.';
+
 export default function PaymentErrorScreen({
   navigation,
   route,
@@ -95,16 +97,19 @@ export default function PaymentErrorScreen({
 
 function getStripeErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message;
+    return error.message.trim() || DEFAULT_PAYMENT_ERROR_MESSAGE;
   }
   if (typeof error === 'object' && error !== null && 'message' in error) {
-    return String(error.message);
+    const message = error.message;
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim();
+    }
   }
-  return '';
+  return DEFAULT_PAYMENT_ERROR_MESSAGE;
 }
 
 function getFriendlyMessage(message: string): string {
-  const normalized = message.toLowerCase();
+  const normalized = message.trim().toLowerCase();
   if (normalized.includes('insufficient') || normalized.includes('fondos')) {
     return 'Fondos insuficientes en la tarjeta.';
   }
@@ -114,7 +119,7 @@ function getFriendlyMessage(message: string): string {
   if (normalized.includes('network') || normalized.includes('conex') || normalized.includes('internet')) {
     return 'Error de conexión. Intentá nuevamente.';
   }
-  return 'El pago no pudo procesarse.';
+  return DEFAULT_PAYMENT_ERROR_MESSAGE;
 }
 
 const styles = StyleSheet.create({
