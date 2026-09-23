@@ -51,7 +51,7 @@ export default function SideMenu({
           <View style={styles.topRow}>
             <Text style={styles.logo}>NG</Text>
             <Pressable accessibilityLabel="Cerrar menú" hitSlop={10} onPress={onClose} style={styles.closeButton}>
-              <UiIcon name="close" size={31} />
+              <UiIcon name="close" size={27} />
             </Pressable>
           </View>
 
@@ -81,7 +81,7 @@ function MenuItem({
       {selected && <View style={styles.selectedLine} />}
       <UiIcon name={icon} size={24} />
       <Text style={styles.menuLabel}>{label}</Text>
-      <UiIcon name="arrowRight" color={colors.textSecondary} size={30} />
+      <UiIcon name="arrowRight" color={colors.textSecondary} size={24} />
     </View>
   );
 
@@ -107,14 +107,14 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
     top: 0,
-    width: '82%',
+    width: '80%',
   },
   topRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.lg },
   logo: { color: colors.text, fontSize: 30, fontStyle: 'italic', fontWeight: '900', letterSpacing: -2 },
   closeButton: { padding: spacing.sm },
   separator: { backgroundColor: colors.border, height: StyleSheet.hairlineWidth },
   menuItem: { alignItems: 'center', borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: spacing.lg, minHeight: 66, paddingHorizontal: spacing.lg, position: 'relative' },
-  menuItemSelected: { backgroundColor: colors.surfaceMuted },
+  menuItemSelected: { backgroundColor: colors.surface },
   selectedLine: { backgroundColor: colors.text, borderBottomRightRadius: radii.sm, borderTopRightRadius: radii.sm, bottom: 12, left: 0, position: 'absolute', top: 12, width: 3 },
   menuLabel: { color: colors.text, flex: 1, fontSize: 16, fontWeight: '600' },
 });
