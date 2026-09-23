@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { getErrorMessage, ordersApi, type Order } from '../services/api';
+import { useIsMounted } from '../hooks/useIsMounted';
 import { colors } from '../theme';
 
 type CustomerStackParamList = {
@@ -46,25 +47,38 @@ export default function MyOrdersScreen({ navigation }: MyOrdersScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useIsMounted();
 
   const loadOrders = useCallback(async () => {
     try {
       setError(null);
       const response = await ordersApi.getMyOrders();
+      if (!isMounted.current) {
+        return;
+      }
       setOrders(response.data);
     } catch (requestError) {
+      if (!isMounted.current) {
+        return;
+      }
       setError(getErrorMessage(requestError));
     }
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
-    void loadOrders().finally(() => setIsLoading(false));
-  }, [loadOrders]);
+    void loadOrders().finally(() => {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    });
+  }, [isMounted, loadOrders]);
 
   const refresh = async () => {
     setIsRefreshing(true);
     await loadOrders();
-    setIsRefreshing(false);
+    if (isMounted.current) {
+      setIsRefreshing(false);
+    }
   };
 
   if (isLoading) {

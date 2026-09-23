@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
+import { useIsMounted } from '../hooks/useIsMounted';
 import { getErrorMessage, productsApi, type Product } from '../services/api';
 import { useCartStore } from '../store/cartStore';
 import { colors } from '../theme';
@@ -49,6 +50,7 @@ export default function ProductDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const isMounted = useIsMounted();
   const imageHeight = Math.min(Math.max(width * 0.75, 260), 480);
 
   const loadProduct = useCallback(async () => {
@@ -56,14 +58,22 @@ export default function ProductDetailScreen() {
     setError(null);
     try {
       const response = await productsApi.getById(params.id);
+      if (!isMounted.current) {
+        return;
+      }
       setProduct(response.data);
       setQuantity(response.data.stock?.quantity ? 1 : 0);
     } catch (requestError) {
+      if (!isMounted.current) {
+        return;
+      }
       setError(getErrorMessage(requestError));
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  }, [params.id]);
+  }, [isMounted, params.id]);
 
   useEffect(() => {
     void loadProduct();

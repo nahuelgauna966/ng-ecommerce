@@ -14,6 +14,7 @@ import {
 import CategoryCard from '../components/CategoryCard';
 import RemoteProductImage from '../components/RemoteProductImage';
 import UiIcon from '../components/UiIcon';
+import { useIsMounted } from '../hooks/useIsMounted';
 import {
   categoriesApi,
   getErrorMessage,
@@ -38,6 +39,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [featuredProduct, setFeaturedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useIsMounted();
   const bannerHeight = Math.min(Math.max((width - spacing.lg * 2) * 0.62, 220), 360);
 
   const loadHome = useCallback(async () => {
@@ -47,14 +49,22 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         categoriesApi.getAll(),
         productsApi.getAll(1, 1),
       ]);
+      if (!isMounted.current) {
+        return;
+      }
       setCategories(categoriesResponse.data);
       setFeaturedProduct(productsResponse.data.data[0] ?? null);
     } catch (requestError) {
+      if (!isMounted.current) {
+        return;
+      }
       setError(getErrorMessage(requestError));
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
     void loadHome();

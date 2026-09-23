@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { z } from 'zod';
 
 import { useAuth } from '../context/AuthContext';
+import { useIsMounted } from '../hooks/useIsMounted';
 import { getErrorMessage, usersApi } from '../services/api';
 import { colors } from '../theme';
 
@@ -36,17 +37,29 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [initialValues, setInitialValues] = useState<{ name: string; email: string } | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const isMounted = useIsMounted();
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: { name: '', email: '', password: '', confirmPassword: '', currentPassword: '' },
   });
 
   useEffect(() => {
+    let isActive = true;
     void usersApi.getMe().then(({ data }) => {
+      if (!isActive) {
+        return;
+      }
       const values = { name: data.name, email: data.email };
       setInitialValues(values);
       reset({ ...values, password: '', confirmPassword: '', currentPassword: '' });
-    }).catch((error) => setSubmitError(getErrorMessage(error)));
+    }).catch((error) => {
+      if (isActive) {
+        setSubmitError(getErrorMessage(error));
+      }
+    });
+    return () => {
+      isActive = false;
+    };
   }, [reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -64,12 +77,17 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
     try {
       const { data: updatedProfile } = await usersApi.updateMe(payload);
+      if (!isMounted.current) {
+        return;
+      }
       updateUser({ id: updatedProfile.id, email: updatedProfile.email, role: user?.role ?? 'customer' });
       setInitialValues({ name: updatedProfile.name, email: updatedProfile.email });
       reset({ name: updatedProfile.name, email: updatedProfile.email, password: '', confirmPassword: '', currentPassword: '' });
       setSuccess(data.email !== initialValues.email ? 'Perfil actualizado. El cambio de email podría afectar tu sesión.' : 'Perfil actualizado correctamente.');
     } catch (error) {
-      setSubmitError(getErrorMessage(error));
+      if (isMounted.current) {
+        setSubmitError(getErrorMessage(error));
+      }
     }
   };
 
