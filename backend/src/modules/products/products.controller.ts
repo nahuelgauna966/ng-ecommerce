@@ -30,6 +30,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -42,7 +43,9 @@ import { ProductsService, PaginatedResult } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { ProductDiscoveryQueryDto } from './dto/product-discovery-query.dto';
 import { Product } from './product.entity';
+import { ComponentType } from './product-component.types';
 
 @ApiTags('products')
 @Controller('products')
@@ -51,10 +54,42 @@ export class ProductsController {
 
   @Get()
   @ApiOkResponse({ description: 'Lista paginada de productos.' })
+  @ApiQuery({ name: 'componentType', enum: ComponentType, required: false })
+  @ApiQuery({ name: 'brand', type: String, required: false })
   findAll(
     @Query() query: PaginationQueryDto,
   ): Promise<PaginatedResult<Product>> {
     return this.productsService.findAllPaginated(query);
+  }
+
+  @Get('featured')
+  @ApiOperation({ summary: 'Listar productos destacados disponibles.' })
+  @ApiQuery({ name: 'limit', type: Number, required: false, example: 10 })
+  @ApiOkResponse({
+    description: 'Lista vacía si no hay productos destacados disponibles.',
+  })
+  findFeatured(@Query() query: ProductDiscoveryQueryDto): Promise<Product[]> {
+    return this.productsService.findFeaturedProducts(query);
+  }
+
+  @Get('newest')
+  @ApiOperation({ summary: 'Listar los productos disponibles más recientes.' })
+  @ApiQuery({ name: 'limit', type: Number, required: false, example: 10 })
+  @ApiOkResponse({
+    description: 'Productos ordenados por fecha de creación descendente.',
+  })
+  findNewest(@Query() query: ProductDiscoveryQueryDto): Promise<Product[]> {
+    return this.productsService.findNewestProducts(query);
+  }
+
+  @Get('brands')
+  @ApiOperation({ summary: 'Listar marcas con productos disponibles.' })
+  @ApiOkResponse({
+    description:
+      'Marcas distintas ordenadas alfabéticamente, ignorando mayúsculas y minúsculas.',
+  })
+  findBrands(): Promise<string[]> {
+    return this.productsService.findAvailableBrands();
   }
 
   @Get(':id')
