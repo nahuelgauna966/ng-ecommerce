@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { OrderDetailsModule } from './modules/order-details/order-details.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { CompatibilityModule } from './modules/compatibility/compatibility.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     OrdersModule,
     OrderDetailsModule,
     PaymentsModule,
+    CompatibilityModule,
   ],
 })
 export class AppModule {}
