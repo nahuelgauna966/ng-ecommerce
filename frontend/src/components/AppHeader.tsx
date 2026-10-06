@@ -1,6 +1,6 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../context/AuthContext';
@@ -17,13 +17,30 @@ interface AppHeaderProps {
 const HEADER_CONTENT_HEIGHT = 58;
 
 export default function AppHeader({ navigation, showBack = false }: AppHeaderProps) {
-  const { user } = useAuth();
+  const { logout, user } = useAuth();
   const totalItems = useCartStore((state) => state.totalItems());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const insets = useSafeAreaInsets();
 
   const openCatalogSearch = () => {
     navigation.navigate('Catalog', { focusSearch: true });
+  };
+
+  const closeAndNavigate = (route: string) => {
+    setIsMenuOpen(false);
+    navigation.navigate(route);
+  };
+
+  const confirmLogout = () => {
+    setIsMenuOpen(false);
+    Alert.alert('Cerrar sesión', '¿Querés cerrar sesión?', [
+      { style: 'cancel', text: 'Cancelar' },
+      {
+        style: 'destructive',
+        text: 'Cerrar sesión',
+        onPress: () => void logout(),
+      },
+    ]);
   };
 
   return (
@@ -59,10 +76,13 @@ export default function AppHeader({ navigation, showBack = false }: AppHeaderPro
       </View>
       <SideMenu
         onClose={() => setIsMenuOpen(false)}
-        onProducts={() => {
-          setIsMenuOpen(false);
-          navigation.navigate('Catalog');
-        }}
+        onProducts={() => closeAndNavigate('Catalog')}
+        onLogin={() => closeAndNavigate('Login')}
+        onRegister={() => closeAndNavigate('Register')}
+        onProfile={() => closeAndNavigate('Profile')}
+        onOrders={() => closeAndNavigate('MyOrders')}
+        onLogout={confirmLogout}
+        user={user}
         visible={isMenuOpen}
       />
     </>

@@ -8,6 +8,10 @@ export type IconName =
   | 'close'
   | 'search'
   | 'user'
+  | 'orders'
+  | 'register'
+  | 'login'
+  | 'logout'
   | 'cart'
   | 'arrowLeft'
   | 'arrowRight'
@@ -25,6 +29,10 @@ const icons: Record<Exclude<IconName, 'gpu'>, keyof typeof Ionicons.glyphMap> = 
   close: 'close-outline',
   search: 'search-outline',
   user: 'person-outline',
+  orders: 'receipt-outline',
+  register: 'person-add-outline',
+  login: 'log-in-outline',
+  logout: 'log-out-outline',
   cart: 'cart-outline',
   arrowLeft: 'chevron-back-outline',
   arrowRight: 'chevron-forward-outline',
