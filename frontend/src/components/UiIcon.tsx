@@ -15,6 +15,7 @@ export type IconName =
   | 'logout'
   | 'cart'
   | 'arrowLeft'
+  | 'arrowUp'
   | 'arrowRight'
   | 'products'
   | 'help'
@@ -37,6 +38,7 @@ const icons: Record<Exclude<IconName, 'gpu'>, keyof typeof Ionicons.glyphMap> = 
   logout: 'log-out-outline',
   cart: 'cart-outline',
   arrowLeft: 'chevron-back-outline',
+  arrowUp: 'arrow-up-outline',
   arrowRight: 'chevron-forward-outline',
   products: 'cube-outline',
   help: 'help-circle-outline',

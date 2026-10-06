@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -16,6 +16,7 @@ import {
 import CategoryCard from '../components/CategoryCard';
 import ProductCard from '../components/ProductCard';
 import UiIcon from '../components/UiIcon';
+import { useAuth } from '../context/AuthContext';
 import { useIsMounted } from '../hooks/useIsMounted';
 import {
   categoriesApi,
@@ -29,6 +30,11 @@ import { colors, radii, spacing } from '../theme';
 type HomeStackParamList = {
   Home: undefined;
   Catalog: { categoryId?: number; focusSearch?: boolean; search?: string; brand?: string } | undefined;
+  Builder: undefined;
+  Cart: undefined;
+  Login: undefined;
+  MyOrders: undefined;
+  Profile: undefined;
   ProductDetail: { id: number };
 };
 
@@ -36,7 +42,10 @@ type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { width } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
+  const [expandedUtilitySection, setExpandedUtilitySection] = useState<'help' | 'information' | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featured, setFeatured] = useState<Product[]>([]);
   const [newest, setNewest] = useState<Product[]>([]);
@@ -83,6 +92,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   return (
     <ScrollView
       contentContainerStyle={styles.content}
+      ref={scrollRef}
       refreshControl={<RefreshControl onRefresh={() => { setIsRefreshing(true); setLoading({ categories: true, featured: true, newest: true, brands: true }); void loadHome(); }} refreshing={isRefreshing} tintColor={colors.text} />}
       style={styles.screen}
     >
@@ -216,7 +226,73 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
         <UiIcon color={colors.text} name="arrowRight" size={24} />
       </Pressable>
+
+      <View style={styles.utilityFooter}>
+        <SectionTitle title="Información útil" />
+        <UtilityAccordion
+          expanded={expandedUtilitySection === 'help'}
+          onPress={() => setExpandedUtilitySection((section) => section === 'help' ? null : 'help')}
+          title="Ayuda"
+        >
+          <UtilityLink label="Explorar productos" onPress={() => navigation.navigate('Catalog')} />
+          <UtilityLink label="Armar una PC" onPress={() => navigation.navigate('Builder')} />
+        </UtilityAccordion>
+        <UtilityAccordion
+          expanded={expandedUtilitySection === 'information'}
+          onPress={() => setExpandedUtilitySection((section) => section === 'information' ? null : 'information')}
+          title="Mi cuenta e información"
+        >
+          <UtilityLink label={user ? 'Ver mi perfil' : 'Iniciar sesión'} onPress={() => navigation.navigate(user ? 'Profile' : 'Login')} />
+          <UtilityLink label="Mis pedidos" onPress={() => navigation.navigate('MyOrders')} />
+          <UtilityLink label="Ir al carrito" onPress={() => navigation.navigate('Cart')} />
+        </UtilityAccordion>
+        <Pressable
+          accessibilityLabel="Volver arriba"
+          accessibilityRole="button"
+          onPress={() => scrollRef.current?.scrollTo({ animated: true, y: 0 })}
+          style={({ pressed }) => [styles.backToTop, pressed && styles.pressed]}
+        >
+          <UiIcon name="arrowUp" size={18} />
+          <Text style={styles.backToTopText}>Volver arriba</Text>
+        </Pressable>
+      </View>
     </ScrollView>
+  );
+}
+
+function UtilityAccordion({
+  title,
+  expanded,
+  onPress,
+  children,
+}: {
+  title: string;
+  expanded: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.utilityAccordion}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        onPress={onPress}
+        style={styles.utilityAccordionHeader}
+      >
+        <Text style={styles.utilityAccordionTitle}>{title}</Text>
+        <Text accessibilityElementsHidden style={styles.utilityAccordionToggle}>{expanded ? '−' : '+'}</Text>
+      </Pressable>
+      {expanded ? <View style={styles.utilityAccordionContent}>{children}</View> : null}
+    </View>
+  );
+}
+
+function UtilityLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="link" onPress={onPress} style={({ pressed }) => [styles.utilityLink, pressed && styles.pressed]}>
+      <Text style={styles.utilityLinkText}>{label}</Text>
+      <UiIcon color={colors.textSecondary} name="arrowRight" size={18} />
+    </Pressable>
   );
 }
 
@@ -296,4 +372,14 @@ const styles = StyleSheet.create({
   builderEyebrow: { color: colors.textSecondary, fontSize: 10, fontWeight: '700', letterSpacing: 2 },
   builderTitle: { color: colors.text, fontSize: 16, fontWeight: '800', marginTop: spacing.xs },
   builderDescription: { color: colors.textSecondary, fontSize: 12, lineHeight: 18, marginTop: spacing.xs },
+  utilityFooter: { backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, marginTop: spacing.xl, paddingBottom: spacing.xl },
+  utilityAccordion: { borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, marginHorizontal: spacing.lg },
+  utilityAccordionHeader: { alignItems: 'center', flexDirection: 'row', minHeight: 54, paddingVertical: spacing.sm },
+  utilityAccordionTitle: { color: colors.text, flex: 1, fontSize: 14, fontWeight: '700' },
+  utilityAccordionToggle: { color: colors.textSecondary, fontSize: 23, fontWeight: '400', paddingHorizontal: spacing.sm },
+  utilityAccordionContent: { paddingBottom: spacing.sm },
+  utilityLink: { alignItems: 'center', flexDirection: 'row', minHeight: 44, paddingLeft: spacing.md, paddingRight: spacing.sm },
+  utilityLinkText: { color: colors.textSecondary, flex: 1, fontSize: 13 },
+  backToTop: { alignItems: 'center', alignSelf: 'center', flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg, padding: spacing.sm },
+  backToTopText: { color: colors.text, fontSize: 13, fontWeight: '700' },
 });
