@@ -36,10 +36,10 @@ export class Product {
   @Column({ default: true })
   isActive!: boolean;
 
-  @Column({ nullable: true, length: 100 })
+  @Column({ type: 'varchar', nullable: true, length: 100 })
   brand!: string | null;
 
-  @Column({ nullable: true, length: 30 })
+  @Column({ type: 'varchar', nullable: true, length: 30 })
   componentType!: ComponentType | null;
 
   @Column({ type: 'jsonb', nullable: true })
