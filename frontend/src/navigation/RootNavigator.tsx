@@ -19,7 +19,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import { colors } from '../theme';
 
-type CatalogParams = { categoryId?: number; focusSearch?: boolean; search?: string } | undefined;
+type CatalogParams = { brand?: string; categoryId?: number; focusSearch?: boolean; search?: string } | undefined;
 
 type AuthStackParamList = {
   Home: undefined;

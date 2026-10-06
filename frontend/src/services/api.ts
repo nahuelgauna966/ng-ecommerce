@@ -11,6 +11,9 @@ let isHandlingUnauthorized = false;
 const api = axios.create({
   baseURL: apiConfiguration.baseUrl,
   timeout: 10_000,
+  headers: {
+    'bypass-tunnel-reminder': 'true',
+  },
 });
 
 api.interceptors.request.use(async (config) => {
@@ -72,7 +75,7 @@ export function getErrorMessage(error: unknown): string {
       return message;
     }
     if (error.code === AxiosError.ERR_NETWORK) {
-      return 'No se pudo conectar con el servidor. Verificá que el backend esté activo y que el dispositivo esté en la misma red.';
+      return 'No se pudo conectar con el servidor. Verificá que el backend y el túnel estén activos.';
     }
   }
   return 'Ocurrió un error inesperado. Intentá nuevamente.';
@@ -126,6 +129,10 @@ export interface Product {
   imageUrl: string | null;
   cloudinaryPublicId: string | null;
   isActive: boolean;
+  brand?: string | null;
+  componentType?: string | null;
+  hardwareSpecs?: Record<string, string | number | string[]> | null;
+  isFeatured?: boolean;
   category?: {
     id: number;
     name: string;
@@ -148,16 +155,28 @@ export interface Category {
 }
 
 export const productsApi = {
-  getAll: (page = 1, limit = 10, categoryId?: number, search?: string) =>
+  getAll: (
+    page = 1,
+    limit = 10,
+    categoryId?: number,
+    search?: string,
+    brand?: string,
+  ) =>
     api.get<PaginatedProducts>('/products', {
       params: {
         page,
         limit,
         ...(categoryId === undefined ? {} : { categoryId }),
         ...(search?.trim() ? { search: search.trim() } : {}),
+        ...(brand?.trim() ? { brand: brand.trim() } : {}),
       },
     }),
   getById: (id: number) => api.get<Product>(`/products/${id}`),
+  getFeatured: (limit = 10) =>
+    api.get<Product[]>('/products/featured', { params: { limit } }),
+  getNewest: (limit = 10) =>
+    api.get<Product[]>('/products/newest', { params: { limit } }),
+  getBrands: () => api.get<string[]>('/products/brands'),
 };
 
 export const categoriesApi = {
