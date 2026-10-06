@@ -23,9 +23,10 @@ import {
   REQUIRED_COMPONENTS,
   useBuilderStore,
 } from '../store/builderStore';
+import { useCartStore } from '../store/cartStore';
 import { colors, radii, spacing } from '../theme';
 
-type BuilderStackParamList = { Builder: undefined };
+type BuilderStackParamList = { Builder: undefined; Cart: undefined };
 type BuilderScreenProps = NativeStackScreenProps<BuilderStackParamList, 'Builder'>;
 
 const COMPONENT_LABELS: Record<ComponentType, string> = {
@@ -54,6 +55,8 @@ export default function BuilderScreen(_props: BuilderScreenProps) {
   const setStep = useBuilderStore((state) => state.setStep);
   const removeProduct = useBuilderStore((state) => state.removeProduct);
   const reset = useBuilderStore((state) => state.reset);
+  const cartItems = useCartStore((state) => state.items);
+  const addToCart = useCartStore((state) => state.addItem);
   const [optionalPicker, setOptionalPicker] = useState<ComponentType | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
@@ -62,6 +65,8 @@ export default function BuilderScreen(_props: BuilderScreenProps) {
   const [compatibility, setCompatibility] = useState<CompatibilityResult | null>(null);
   const [compatibilityError, setCompatibilityError] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
   const productRequestId = useRef(0);
   const compatibilityRequestId = useRef(0);
 
@@ -145,6 +150,42 @@ export default function BuilderScreen(_props: BuilderScreenProps) {
     (total, product) => total + (product ? Number(product.price) : 0),
     0,
   );
+  const hasAllRequired = REQUIRED_COMPONENTS.every((type) => selectedProducts[type]);
+  const cannotAddToCart = !hasAllRequired
+    || isAddingToCart
+    || isChecking
+    || compatibility?.status === 'incompatible';
+
+  const addBuildToCart = () => {
+    setTransferError(null);
+    if (!hasAllRequired) {
+      setTransferError('Completá todos los componentes obligatorios antes de agregar el armado.');
+      return;
+    }
+
+    const productsToAdd = Object.values(selectedProducts).filter(
+      (product): product is Product => Boolean(product),
+    );
+    const unavailableProduct = productsToAdd.find((product) => {
+      const stock = product.stock?.quantity;
+      const cartQuantity = cartItems.find((item) => item.productId === product.id)?.quantity ?? 0;
+      return stock === undefined || cartQuantity + 1 > stock;
+    });
+
+    if (unavailableProduct) {
+      setTransferError(`No hay stock suficiente para agregar ${unavailableProduct.name}. Actualizá el armado e intentá nuevamente.`);
+      return;
+    }
+    if (compatibility?.status === 'incompatible') {
+      setTransferError('Corregí las incompatibilidades indicadas antes de agregar el armado.');
+      return;
+    }
+
+    setIsAddingToCart(true);
+    productsToAdd.forEach((product) => addToCart(product, 1));
+    setIsAddingToCart(false);
+    _props.navigation.navigate('Cart');
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
@@ -251,6 +292,25 @@ export default function BuilderScreen(_props: BuilderScreenProps) {
             result={compatibility}
           />
           <Text style={styles.disclaimer}>La validación cubre únicamente las reglas indicadas. No confirma dimensiones físicas ni compatibilidad de almacenamiento.</Text>
+          {compatibility?.status === 'incomplete' && hasAllRequired ? (
+            <Text style={styles.compatibilityNotice}>Algunas especificaciones no alcanzan para confirmar todas las reglas de compatibilidad. Revisá las advertencias antes de comprar.</Text>
+          ) : null}
+          {transferError ? <Text accessibilityRole="alert" style={styles.transferError}>{transferError}</Text> : null}
+          {compatibility?.status === 'incompatible' ? (
+            <Text style={styles.transferHint}>Este armado tiene incompatibilidades y no se puede agregar al carrito.</Text>
+          ) : !hasAllRequired ? (
+            <Text style={styles.transferHint}>Completá los cinco componentes obligatorios para continuar.</Text>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            disabled={cannotAddToCart}
+            onPress={addBuildToCart}
+            style={[styles.addBuildButton, cannotAddToCart && styles.addBuildButtonDisabled]}
+          >
+            {isAddingToCart ? <ActivityIndicator color={colors.interactiveText} /> : (
+              <Text style={styles.addBuildButtonText}>Agregar armado al carrito</Text>
+            )}
+          </Pressable>
         </View>
       )}
     </ScrollView>
@@ -414,4 +474,10 @@ const styles = StyleSheet.create({
   compatibilityMessage: { color: colors.textSecondary, fontSize: 12, lineHeight: 17, marginTop: spacing.sm },
   checkMessage: { color: colors.textSecondary, fontSize: 12, lineHeight: 17, marginTop: spacing.sm },
   disclaimer: { color: colors.textSecondary, fontSize: 11, lineHeight: 16, marginTop: spacing.md },
+  compatibilityNotice: { color: colors.warning, fontSize: 12, lineHeight: 17, marginTop: spacing.sm },
+  transferError: { color: colors.error, fontSize: 13, lineHeight: 18, marginTop: spacing.md },
+  transferHint: { color: colors.textSecondary, fontSize: 12, lineHeight: 17, marginTop: spacing.md },
+  addBuildButton: { alignItems: 'center', backgroundColor: colors.interactive, borderRadius: radii.md, marginTop: spacing.lg, minHeight: 50, justifyContent: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  addBuildButtonDisabled: { backgroundColor: colors.disabled },
+  addBuildButtonText: { color: colors.interactiveText, fontSize: 15, fontWeight: '800' },
 });
