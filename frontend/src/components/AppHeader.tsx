@@ -77,6 +77,7 @@ export default function AppHeader({ navigation, showBack = false }: AppHeaderPro
       <SideMenu
         onClose={() => setIsMenuOpen(false)}
         onProducts={() => closeAndNavigate('Catalog')}
+        onBuilder={() => closeAndNavigate('Builder')}
         onLogin={() => closeAndNavigate('Login')}
         onRegister={() => closeAndNavigate('Register')}
         onProfile={() => closeAndNavigate('Profile')}

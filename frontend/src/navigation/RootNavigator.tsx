@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import AppHeader from '../components/AppHeader';
 import { type ProtectedRouteName, useAuth } from '../context/AuthContext';
 import CartScreen from '../screens/CartScreen';
+import BuilderScreen from '../screens/BuilderScreen';
 import CatalogScreen from '../screens/CatalogScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
@@ -24,6 +25,7 @@ type CatalogParams = { brand?: string; categoryId?: number; focusSearch?: boolea
 type AuthStackParamList = {
   Home: undefined;
   Catalog: CatalogParams;
+  Builder: undefined;
   ProductDetail: { id: number };
   Login: undefined;
   Register: undefined;
@@ -36,6 +38,7 @@ type AuthStackParamList = {
 type CustomerStackParamList = {
   Home: undefined;
   Catalog: CatalogParams;
+  Builder: undefined;
   ProductDetail: { id: number };
   Cart: undefined;
   Checkout: undefined;
@@ -87,6 +90,7 @@ function AuthNavigator() {
     >
       <AuthStack.Screen name="Home" component={HomeScreen} />
       <AuthStack.Screen name="Catalog" component={CatalogScreen} />
+      <AuthStack.Screen name="Builder" component={BuilderScreen} />
       <AuthStack.Screen name="ProductDetail" component={ProductDetailScreen} />
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
@@ -134,6 +138,7 @@ function CustomerNavigator({ initialRouteName }: { initialRouteName: ProtectedRo
     >
       <CustomerStack.Screen name="Home" component={HomeScreen} />
       <CustomerStack.Screen name="Catalog" component={CatalogScreen} />
+      <CustomerStack.Screen name="Builder" component={BuilderScreen} />
       <CustomerStack.Screen name="ProductDetail" component={ProductDetailScreen} />
       <CustomerStack.Screen name="Cart" component={CartScreen} />
       <CustomerStack.Screen name="Checkout" component={CheckoutScreen} />

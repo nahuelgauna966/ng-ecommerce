@@ -6,6 +6,7 @@ import { colors } from '../theme';
 export type IconName =
   | 'menu'
   | 'close'
+  | 'check'
   | 'search'
   | 'user'
   | 'orders'
@@ -27,6 +28,7 @@ export type IconName =
 const icons: Record<Exclude<IconName, 'gpu'>, keyof typeof Ionicons.glyphMap> = {
   menu: 'menu-outline',
   close: 'close-outline',
+  check: 'checkmark-circle-outline',
   search: 'search-outline',
   user: 'person-outline',
   orders: 'receipt-outline',

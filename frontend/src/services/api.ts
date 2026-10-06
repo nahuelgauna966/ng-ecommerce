@@ -142,6 +142,33 @@ export interface Product {
   };
 }
 
+export type ComponentType =
+  | 'cpu'
+  | 'gpu'
+  | 'motherboard'
+  | 'ram'
+  | 'psu'
+  | 'storage'
+  | 'case'
+  | 'cooler'
+  | 'peripheral'
+  | 'other';
+
+export type CompatibilityStatus = 'compatible' | 'incompatible' | 'incomplete';
+
+export interface CompatibilityCheck {
+  rule: string;
+  status: CompatibilityStatus;
+  productIds: number[];
+  message: string;
+}
+
+export interface CompatibilityResult {
+  status: CompatibilityStatus;
+  products: { id: number; name: string; componentType: ComponentType | null }[];
+  checks: CompatibilityCheck[];
+}
+
 export interface PaginatedProducts {
   data: Product[];
   total: number;
@@ -161,6 +188,7 @@ export const productsApi = {
     categoryId?: number,
     search?: string,
     brand?: string,
+    componentType?: ComponentType,
   ) =>
     api.get<PaginatedProducts>('/products', {
       params: {
@@ -169,6 +197,7 @@ export const productsApi = {
         ...(categoryId === undefined ? {} : { categoryId }),
         ...(search?.trim() ? { search: search.trim() } : {}),
         ...(brand?.trim() ? { brand: brand.trim() } : {}),
+        ...(componentType ? { componentType } : {}),
       },
     }),
   getById: (id: number) => api.get<Product>(`/products/${id}`),
@@ -177,6 +206,11 @@ export const productsApi = {
   getNewest: (limit = 10) =>
     api.get<Product[]>('/products/newest', { params: { limit } }),
   getBrands: () => api.get<string[]>('/products/brands'),
+};
+
+export const compatibilityApi = {
+  validate: (productIds: number[]) =>
+    api.post<CompatibilityResult>('/compatibility/validate', { productIds }),
 };
 
 export const categoriesApi = {

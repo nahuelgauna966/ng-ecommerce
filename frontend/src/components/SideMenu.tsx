@@ -18,6 +18,7 @@ interface SideMenuProps {
   user: { email: string } | null;
   onClose: () => void;
   onProducts: () => void;
+  onBuilder: () => void;
   onLogin: () => void;
   onRegister: () => void;
   onProfile: () => void;
@@ -30,6 +31,7 @@ export default function SideMenu({
   user,
   onClose,
   onProducts,
+  onBuilder,
   onLogin,
   onRegister,
   onProfile,
@@ -119,7 +121,7 @@ export default function SideMenu({
             </>
           )}
           <MenuItem accessibilityLabel="Ayuda, próximamente disponible" icon="help" label="Ayuda" />
-          <MenuItem accessibilityLabel="Armá tu PC, próximamente disponible" icon="desktop" label="Armá tu PC" />
+          <MenuItem accessibilityLabel="Armar una PC" icon="desktop" label="Armá tu PC" onPress={onBuilder} />
         </View>
       </View>
     </Modal>
