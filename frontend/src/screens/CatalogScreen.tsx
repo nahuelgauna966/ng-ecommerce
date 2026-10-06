@@ -25,7 +25,7 @@ import UiIcon from '../components/UiIcon';
 
 type CustomerStackParamList = {
   Home: undefined;
-  Catalog: { categoryId?: number; focusSearch?: boolean; search?: string } | undefined;
+  Catalog: { categoryId?: number; focusSearch?: boolean; search?: string; brand?: string } | undefined;
   ProductDetail: { id: number };
   Cart: undefined;
   Checkout: undefined;
@@ -44,6 +44,7 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>();
   const [searchInput, setSearchInput] = useState(route.params?.search ?? '');
   const [search, setSearch] = useState(route.params?.search ?? '');
+  const [selectedBrand, setSelectedBrand] = useState(route.params?.brand);
   const searchInputRef = useRef<TextInput>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -62,7 +63,7 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
       latestRequestId.current = requestId;
       try {
         setError(null);
-        const response = await productsApi.getAll(nextPage, PAGE_SIZE, categoryId, searchTerm);
+        const response = await productsApi.getAll(nextPage, PAGE_SIZE, categoryId, searchTerm, selectedBrand);
         const { data, total: responseTotal } = response.data;
         if (!isMounted.current || requestId !== latestRequestId.current) {
           return;
@@ -77,7 +78,7 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
         setError(getErrorMessage(requestError));
       }
     },
-    [isMounted, search, selectedCategoryId],
+    [isMounted, search, selectedBrand, selectedCategoryId],
   );
 
   const loadCategories = useCallback(async () => {
@@ -103,7 +104,8 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
   useEffect(() => {
     const nextSearch = route.params?.search ?? '';
     const nextCategoryId = route.params?.categoryId;
-    const routeQuery = `${nextCategoryId ?? ''}:${nextSearch}`;
+    const nextBrand = route.params?.brand;
+    const routeQuery = `${nextCategoryId ?? ''}:${nextSearch}:${nextBrand ?? ''}`;
     if (appliedRouteQuery.current === null) {
       appliedRouteQuery.current = routeQuery;
       return;
@@ -116,11 +118,12 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
     setSearchInput(nextSearch);
     setSearch(nextSearch);
     setSelectedCategoryId(nextCategoryId);
+    setSelectedBrand(nextBrand);
     setProducts([]);
     setPage(1);
     setTotal(0);
     setError(null);
-  }, [route.params?.categoryId, route.params?.search]);
+  }, [route.params?.brand, route.params?.categoryId, route.params?.search]);
 
   useEffect(() => {
     if (route.params?.focusSearch) {
@@ -243,6 +246,9 @@ export default function CatalogScreen({ navigation, route }: CatalogScreenProps)
             {categories.map((category) => (
               <CategoryChip key={category.id} label={category.name} onPress={() => selectCategory(category.id)} selected={selectedCategoryId === category.id} />
             ))}
+            {selectedBrand ? (
+              <CategoryChip label={selectedBrand} onPress={() => setSelectedBrand(undefined)} selected />
+            ) : null}
           </ScrollView>
         </>
       }

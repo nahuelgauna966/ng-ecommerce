@@ -14,21 +14,24 @@ import RemoteProductImage from './RemoteProductImage';
 interface ProductCardProps {
   product: Product;
   onPress: () => void;
+  compact?: boolean;
 }
 
-export default function ProductCard({ product, onPress }: ProductCardProps) {
+export default function ProductCard({ product, onPress, compact = false }: ProductCardProps) {
   const { width } = useWindowDimensions();
   const quantity = useCartStore(
     (state) =>
       state.items.find((item) => item.productId === product.id)?.quantity ?? 0,
   );
-  const imageHeight = Math.min(Math.max((width - 32) * 0.56, 160), 240);
+  const imageHeight = compact
+    ? 128
+    : Math.min(Math.max((width - 32) * 0.56, 160), 240);
 
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      style={({ pressed }) => [styles.card, compact && styles.compactCard, pressed && styles.cardPressed]}
     >
       <RemoteProductImage
         accessibilityLabel={`Imagen de ${product.name}`}
@@ -63,6 +66,11 @@ const styles = StyleSheet.create({
   },
   cardPressed: {
     opacity: 0.75,
+  },
+  compactCard: {
+    marginHorizontal: 0,
+    marginTop: 0,
+    width: 190,
   },
   image: {
     width: '100%',
